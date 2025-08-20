@@ -198,19 +198,6 @@ function initializeCharts() {
                         }
                     },
                     x: {
-        // Adjust x-axis labels per time range for realism
-        if (window.tcState) {
-            const range = window.tcState.range;
-            if (range === '7d') {
-                window.tcCharts.security.data.labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-            } else if (range === '30d') {
-                window.tcCharts.security.data.labels = Array.from({length: 10}, (_,i)=>`Day ${i*3+1}`);
-            } else {
-                window.tcCharts.security.data.labels = ['00:00','04:00','08:00','12:00','16:00','20:00'];
-            }
-            window.tcCharts.security.update();
-        }
-
                         grid: {
                             color: '#e5e7eb'
                         }
@@ -258,6 +245,24 @@ function initializeCharts() {
                         '#ef4444',
                         '#10b981'
                     ],
+                    // Adjust labels for traffic chart by time range
+                    if (window.tcState) {
+                        const range = window.tcState.range;
+                        if (range === '7d') {
+                            window.tcCharts.traffic.data.labels = ['Man','Tue','Wed','Thu','Fri','Sat','Sun'];
+                        } else if (range === '30d') {
+                            window.tcCharts.traffic.data.labels = Array.from({length: 10}, (_,i)=>`Wk ${i+1}`);
+                        } else {
+                            const v = window.tcState.view;
+                            if (v === 'environment') window.tcCharts.traffic.data.labels = ['Manama','Muharraq','Riffa','Isa Town','Sitra'];
+                            else if (v === 'water') window.tcCharts.traffic.data.labels = ['West','North','East','South','Industrial'];
+                            else if (v === 'energy') window.tcCharts.traffic.data.labels = ['North','South','West','East','Manama'];
+                            else if (v === 'infrastructure') window.tcCharts.traffic.data.labels = ['Airport','Metro','Water Main','Port','Housing'];
+                            else window.tcCharts.traffic.data.labels = ['King Faisal Hwy','Sheikh Khalifa Hwy','Diplomatic','Manama Center','Muharraq Bridge'];
+                        }
+                        window.tcCharts.traffic.update();
+                    }
+
                     borderRadius: 4
                 }]
             },
@@ -366,6 +371,54 @@ function updateTimeRange(range) {
 
 function updateLiveData() {
     // Simulate live data updates
+    // Update x-axis labels for charts based on selected time range
+    if (window.tcCharts && window.tcState) {
+        const range = window.tcState.range;
+        // Security chart labels
+        if (window.tcCharts.security) {
+            window.tcCharts.security.data.labels = range === '7d' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] :
+                range === '30d' ? Array.from({length: 10}, (_,i)=>`Day ${i*3+1}`) :
+                ['00:00','04:00','08:00','12:00','16:00','20:00'];
+            window.tcCharts.security.update();
+        }
+        // Traffic/sector bar labels
+        if (window.tcCharts.traffic) {
+            if (range === '7d') {
+                window.tcCharts.traffic.data.labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            } else if (range === '30d') {
+                window.tcCharts.traffic.data.labels = Array.from({length: 10}, (_,i)=>`Wk ${i+1}`);
+            } else {
+                const v = window.tcState.view;
+                const defs = {
+                    environment: ['Manama','Muharraq','Riffa','Isa Town','Sitra'],
+                    water: ['West','North','East','South','Industrial'],
+                    energy: ['North','South','West','East','Manama'],
+                    infrastructure: ['Airport','Metro','Water Main','Port','Housing'],
+                    traffic: ['King Faisal Hwy','Sheikh Khalifa Hwy','Diplomatic','Manama Center','Muharraq Bridge']
+                };
+                window.tcCharts.traffic.data.labels = defs[v] || defs.traffic;
+            }
+            window.tcCharts.traffic.update();
+        }
+    }
+
+    // Adjust metric values slightly for range
+    const factor = range === '7d' ? 1.05 : range === '30d' ? 1.12 : 1.0;
+    const v = window.tcState?.view || 'executive';
+    if (window.tcData) {
+        const d = window.tcData[v];
+        if (d && window.tcCharts) {
+            if (window.tcCharts.security) {
+                window.tcCharts.security.data.datasets[0].data = d.security.map(x=>Math.min(99, Math.round(x*factor)));
+                window.tcCharts.security.update();
+            }
+            if (window.tcCharts.traffic) {
+                window.tcCharts.traffic.data.datasets[0].data = d.traffic.map(x=>Math.min(100, Math.round(x*factor)));
+                window.tcCharts.traffic.update();
+            }
+        }
+    }
+
     const liveElements = document.querySelectorAll('[data-target]');
     liveElements.forEach(el => {
         if (el.closest('.dashboard-card')) {
@@ -384,6 +437,10 @@ function updateLiveData() {
             executive: 'publc/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
             cybersecurity: 'publc/videos/8_security_threat_202508200300_wi77v.mp4',
             traffic: 'publc/videos/9_traffic_flow_202508200300_4a7jp.mp4',
+            environment: 'publc/videos/environment_air_quality_preview.mp4',
+            water: 'publc/videos/water_management_overview.mp4',
+            energy: 'publc/videos/energy_grid_dashboard.mp4',
+            infrastructure: 'publc/videos/infrastructure_projects_progress.mp4',
             health: 'publc/videos/10_health_analytics_202508200300_oyqjd.mp4'
         };
         const src = sources[view] || sources.executive;
