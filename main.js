@@ -18,15 +18,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// Helper: set video src with fallbacks
+});
+
+
+// Helper: set video src with fallbacks (global)
 function setVideoSourceWithFallback(videoEl, candidates) {
   if (!videoEl || !candidates || !candidates.length) return;
   let idx = 0;
   const tryNext = () => {
     if (idx >= candidates.length) return;
     const src = candidates[idx++];
-    const sourceEl = videoEl.querySelector('source') || document.createElement('source');
-    if (!sourceEl.parentElement) videoEl.appendChild(sourceEl);
+    let sourceEl = videoEl.querySelector('source');
+    if (!sourceEl) {
+      sourceEl = document.createElement('source');
+      videoEl.appendChild(sourceEl);
+    }
     sourceEl.src = src;
     const onError = () => {
       videoEl.removeEventListener('error', onError);
@@ -41,8 +47,6 @@ function setVideoSourceWithFallback(videoEl, candidates) {
   };
   tryNext();
 }
-
-});
 
 // App state and datasets
 function initializeState(){
@@ -812,10 +816,8 @@ function initializeVideoSystem() {
   let heatLayer = null;
   let mapInstance = mapEl._leaflet_id && mapEl._leaflet ? mapEl._leaflet : null;
 
-  // Grab existing map instance if we can (we stored it only locally). For demo, rebuild if missing.
-  let map;
-  try { map = L.map('bhMap'); } catch (e) { /* ignored: instance already exists */ }
-  map = map || (window.__bhMapInstance);
+  // Use existing map created by initializeMap; never create here to avoid duplicate init
+  const map = window.__bhMapInstance || null;
 
   const points = [
     [26.2235, 50.5876, 0.8], // Manama
@@ -956,12 +958,15 @@ function applyRolePermissions(role) {
 function initializeMap() {
     const el = document.getElementById('bhMap');
     if (!el || !window.L) return;
-    // Prevent re-initialization of the same container
-    if (window.__bhMapInstance && window.__bhMapInstance.remove) {
-        window.__bhMapInstance.remove();
-        window.__bhMapInstance = null;
+    // Robust singleton: if a map already exists on this element, reuse it
+    if (window.__bhMapInstance && window.__bhMapInstance._container === el) {
+        return; // already initialized for this container
     }
-    const map = L.map('bhMap', { zoomControl: false }).setView([26.0667, 50.5577], 11);
+    // If Leaflet attached a _leaflet_id to the element, clear its contents
+    if (el._leaflet_id) {
+        el.innerHTML = '';
+    }
+    const map = L.map(el, { zoomControl: false }).setView([26.0667, 50.5577], 11);
     window.__bhMapInstance = map;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
