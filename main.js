@@ -51,7 +51,8 @@ function initializeState(){
   // Initial datasets per view for realism
   window.tcData = {
     executive: { security: [85,88,92,89,94,96], traffic: [78,65,89,92,56], entities: 15847, relationships: 89234, health: 98 },
-    cybersecurity: { security: [78,82,86,84,90,93], traffic: [40,45,38,42,50], entities: 8934, relationships: 45621, health: 94 },
+    cybersecurity: { security: [78,82,86,84,90,93], traffic: [40,45,38,42,50], entities: 8934, relationships: 45621, health: 94,
+      kpis: { anomalies: 124, phishing: 38, criticalAlerts: 3, patchCompliance: 0.91 } },
     traffic: { security: [88,90,91,93,94,95], traffic: [72,68,85,95,62], entities: 12456, relationships: 67890, health: 96,
       kpis: { manamaCongestion: 0.32, muharraqCongestion: 0.24, parkingUtil: 0.71, transitOnTime: 0.86 } },
     environment: { security: [90,91,92,93,94,95], traffic: [35,30,28,26,25], entities: 9450, relationships: 52310, health: 97,
