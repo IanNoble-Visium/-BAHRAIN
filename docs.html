@@ -60,7 +60,7 @@
   function renderDocs(){
     const list = document.getElementById('docsList');
     docs.forEach(d => {
-      const url = `publc/docs/${encodeURIComponent(d.file)}`;
+      const url = `public/docs/${encodeURIComponent(d.file)}`;
       const card = document.createElement('div');
       card.className = 'doc-card';
       card.innerHTML = `

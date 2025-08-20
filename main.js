@@ -158,6 +158,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearch();
     renderRoleBadge();
     initializeState();
+    // Initialize KPI display after state is set
+    setTimeout(() => {
+        if (window.tcUtils && window.tcState) {
+            window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
+        }
+    }, 100);
 });
 
 // Render current role badge in nav and demo toolbar
@@ -280,8 +286,14 @@ function initSectionBgVideos(){
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            // Skip if href is just "#" or empty
+            if (!href || href === '#') {
+                return;
+            }
+
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const target = document.querySelector(href);
             if (target) {
                 target.scrollIntoView({
                     behavior: 'smooth',
