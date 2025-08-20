@@ -458,14 +458,14 @@ function updateLiveData() {
     const video = document.getElementById('dashboardVideo');
     if (video) {
         const sources = {
-            executive: 'publc/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
-            cybersecurity: 'publc/videos/8_security_threat_202508200300_wi77v.mp4',
-            traffic: 'publc/videos/9_traffic_flow_202508200300_4a7jp.mp4',
-            environment: 'publc/videos/environment_air_quality_preview.mp4',
-            water: 'publc/videos/water_management_overview.mp4',
-            energy: 'publc/videos/energy_grid_dashboard.mp4',
-            infrastructure: 'publc/videos/infrastructure_projects_progress.mp4',
-            health: 'publc/videos/10_health_analytics_202508200300_oyqjd.mp4'
+            executive: 'public/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
+            cybersecurity: 'public/videos/8_security_threat_202508200300_wi77v.mp4',
+            traffic: 'public/videos/9_traffic_flow_202508200300_4a7jp.mp4',
+            environment: 'public/videos/15_environmental_monitoring_202508200301_46l.mp4',
+            water: 'public/videos/Smart_infrastructure_in_202508200301_qeeuc.mp4',
+            energy: 'public/videos/Real_Time_Grid_Strain_Dashboard.mp4',
+            infrastructure: 'public/videos/Smart_city_infrastructure_202508200300_y1fx5.mp4',
+            health: 'public/videos/10_health_analytics_202508200300_oyqjd.mp4'
         };
         const src = sources[view] || sources.executive;
     // Use tcData per current view
