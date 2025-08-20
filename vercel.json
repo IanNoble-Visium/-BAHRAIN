@@ -5,7 +5,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/publc/videos/(.*)\\.mp4",
+      "source": "/publc/videos/(.*).mp4",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
         { "key": "Accept-Ranges", "value": "bytes" }
@@ -14,11 +14,6 @@
   ],
   "rewrites": [
     { "source": "/public/:path*", "destination": "/publc/:path*" }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/docs", "dest": "/docs.html" }
   ]
 }
 
