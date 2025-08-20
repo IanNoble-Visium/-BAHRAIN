@@ -66,6 +66,94 @@ function initializeState(){
     health: { security: [90,92,95,96,97,98], traffic: [30,28,26,25,24], entities: 6789, relationships: 34567, health: 99,
       kpis: { erDemandIdx: 0.74, icuOccPct: 0.68, diabetesPrev: 0.19, obesityPrev: 0.29 } }
   };
+// Compute sector KPI tiles for current view & time range and cross-sector effects
+function computeSectorKpis(view, range){
+  const data = window.tcData?.[view]?.kpis || {};
+  // Cross-sector influences (simple model)
+  // If traffic congestion rises, AQI worsens slightly and ER demand ticks up
+  const t = window.tcData?.traffic?.kpis;
+  const env = window.tcData?.environment?.kpis;
+  const health = window.tcData?.health?.kpis;
+  if (t && env) {
+    const congestion = (t.manamaCongestion + t.muharraqCongestion)/2;
+    // degrade AQI by up to +8 points
+    if (view === 'environment') {
+      data.aqiManama = Math.round((env.aqiManama + congestion * 20));
+      data.aqiMuharraq = Math.round((env.aqiMuharraq + congestion * 18));
+    }
+    if (view === 'health' && health) {
+      data.erDemandIdx = +(health.erDemandIdx + congestion*0.05).toFixed(2);
+    }
+  }
+  // Time range scaling
+  const factor = range==='7d' ? 1.05 : range==='30d' ? 1.12 : 1.0;
+  const scaled = {};
+  Object.keys(data).forEach(k=>{
+    const v = data[k];
+    scaled[k] = typeof v === 'number' ? +(v*factor).toFixed(2) : v;
+  });
+  return scaled;
+}
+
+function renderKpiRow(view, range){
+  const row = document.getElementById('kpiRow');
+  if (!row) return;
+  const k = computeSectorKpis(view, range);
+  const formatPct = v => (v<=1? Math.round(v*100)+'%': v);
+  const byView = {
+    traffic: [
+      { label: 'Manama congestion', value: formatPct(k.manamaCongestion) },
+      { label: 'Muharraq congestion', value: formatPct(k.muharraqCongestion) },
+      { label: 'Parking utilization', value: formatPct(k.parkingUtil) },
+      { label: 'Transit on-time', value: formatPct(k.transitOnTime) }
+    ],
+    environment: [
+      { label: 'AQI Manama', value: k.aqiManama },
+      { label: 'AQI Muharraq', value: k.aqiMuharraq },
+      { label: 'Dust storm risk', value: formatPct(k.dustForecast) },
+      { label: 'Heat index (°C)', value: k.heatIndex }
+    ],
+    water: [
+      { label: 'Consumption (MLD)', value: k.consumptionMLD },
+      { label: 'Leak rate', value: formatPct(k.leakRate) },
+      { label: 'Desal efficiency', value: formatPct(k.desalEfficiency) },
+      { label: 'Smart meter anomalies', value: k.smartMeterAnoms }
+    ],
+    energy: [
+      { label: 'Solar gen (MW)', value: k.solarGenMW },
+      { label: 'Grid load (MW)', value: k.gridLoadMW },
+      { label: 'Peak shaved (MW)', value: k.peakShavedMW },
+      { label: 'Renewables share', value: formatPct(k.renewablesPct) }
+    ],
+    health: [
+      { label: 'ER demand index', value: k.erDemandIdx },
+      { label: 'ICU occupancy', value: formatPct(k.icuOccPct) },
+      { label: 'Diabetes prevalence', value: formatPct(k.diabetesPrev) },
+      { label: 'Obesity prevalence', value: formatPct(k.obesityPrev) }
+    ],
+    cybersecurity: [
+      { label: 'Network anomalies', value: k.anomalies },
+      { label: 'Phishing indicators', value: k.phishing },
+      { label: 'Critical alerts', value: k.criticalAlerts },
+      { label: 'Patch compliance', value: formatPct(k.patchCompliance) }
+    ],
+    infrastructure: [
+      { label: 'Active projects', value: k.activeProjects },
+      { label: 'On-time rate', value: formatPct(k.onTimePct) },
+      { label: 'Cost overrun risk', value: formatPct(k.costOverrunRisk) },
+      { label: 'Contractor score', value: formatPct(k.contractorScore) }
+    ],
+    executive: [
+      { label: 'Entities', value: window.tcData.executive.entities },
+      { label: 'Relationships', value: window.tcData.executive.relationships },
+      { label: 'Health', value: formatPct(window.tcData.executive.health/100) },
+      { label: 'Live alerts', value: document.querySelectorAll('.alert-item').length }
+    ]
+  };
+  const tiles = byView[view] || byView.executive;
+  row.innerHTML = tiles.map(t=>`<div class="kpi-tile"><div class="kpi-label">${t.label}</div><div class="kpi-value">${t.value ?? '—'}</div></div>`).join('');
+}
+
 }
 
 // Navigation functionality
@@ -259,6 +347,9 @@ function initializeCharts() {
                                v === 'environment' ? 'AQI by District' :
                                v === 'water' ? 'Water Flow/Anomaly Index' :
                                v === 'energy' ? 'Grid Load % by Zone' :
+    // Initialize KPI row on load
+    renderKpiRow(window.tcState.view, window.tcState.range);
+
                                v === 'infrastructure' ? 'Project Progress %' :
                                'Traffic Flow';
                     },
@@ -333,6 +424,7 @@ function initializeDemoControls() {
         viewSelect.addEventListener('change', function() {
             window.tcState && (window.tcState.view = this.value);
             updateDashboardView(this.value);
+            renderKpiRow(window.tcState.view, window.tcState.range);
         });
     }
 
@@ -344,6 +436,7 @@ function initializeDemoControls() {
             const range = this.getAttribute('data-range');
             window.tcState && (window.tcState.range = range);
             updateTimeRange(range);
+            renderKpiRow(window.tcState.view, window.tcState.range);
         });
     });
 
