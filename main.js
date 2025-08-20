@@ -668,11 +668,11 @@ window.addEventListener('error', function(e) {
 
     // Alert -> video mapping
     const alertVideoMap = {
-        traffic: 'publc/videos/12_traffic_congestion_202508200300_ikpda.mp4',
-        network: 'publc/videos/11_cybersecurity_alert_202508200300_vghx1.mp4',
-        water: 'publc/videos/13_infrastructure_anomaly_202508200300_z1ddp.mp4',
-        health: 'publc/videos/14_health_system_202508200301_0d99a.mp4',
-        environment: 'publc/videos/15_environmental_monitoring_202508200301_46l.mp4'
+        traffic: 'public/video-kpis/Usage Alert modal for congestionincident - Traffic__smart_202508200424_7ritq.mp4',
+        network: 'public/video-kpis/Usage Alert modal for critical infra incidents - Cybersecurity_prompt_soc_202508200431_h6ar5.mp4',
+        water: 'public/video-kpis/Usage Alert modal for leak events - Water_management_prompt_202508200427_o0yt6.mp4',
+        health: 'public/video-kpis/Usage Alert modal for capacity alerts -Healthcare_prompt_salmaniya_202508200430_7ml.mp4',
+        environment: 'public/video-kpis/Usage Alert modal for dustpollution events - Environment__air_202508200427_0tmxt.mp4'
     };
     document.querySelectorAll('.alert-item').forEach(item => {
         item.style.cursor = 'pointer';
@@ -828,7 +828,7 @@ applyRolePermissions = function(role){
 
     if (dashboardVideo && videoModal && modalVideo) {
         dashboardVideo.addEventListener('click', () => {
-            modalVideo.src = 'publc/videos/Digital_bahrain_network_202508200259_t1v94.mp4';
+            modalVideo.src = 'public/videos/Digital_bahrain_network_202508200259_t1v94.mp4';
             videoModal.classList.remove('hidden');
             modalVideo.play().catch(()=>{});
         });
