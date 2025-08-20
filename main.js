@@ -1,5 +1,148 @@
 // Main JavaScript for TruContext Bahrain Demo
 
+// Global utility functions (defined first to ensure availability)
+window.tcUtils = {
+  nowContext: function(){
+    const d = new Date();
+    return { hour: d.getHours(), day: d.getDay(), isWeekend: d.getDay()===5 || d.getDay()===6 };
+  },
+  rushHourMultiplier: function(hour){
+    if ((hour>=7 && hour<=9) || (hour>=16 && hour<=19)) return 1.35;
+    if ((hour>=6 && hour<7) || (hour>19 && hour<=20)) return 1.15;
+    return 1.0;
+  },
+  weekendMultiplier: function(day){
+    return (day===5 || day===6) ? 0.8 : 1.0;
+  },
+  jitterBounded: function(value, pct=0.05, min=0, max=100){
+    const delta = value * pct * (Math.random()*2 - 1);
+    const v = value + delta;
+    return Math.max(min, Math.min(max, v));
+  },
+  clamp: function(v, min, max){ return Math.max(min, Math.min(max, v)); },
+  getRealisticSeries: function(kind, view, range){
+    const { hour, day } = window.tcUtils.nowContext();
+    const base = (window.tcData?.[view]) || window.tcData?.executive || { security:[85,88,92,89,94,96], traffic:[70,65,80,90,60] };
+    const factor = range==='7d' ? 1.03 : range==='30d' ? 1.06 : 1.0;
+    let series = (kind==='security' ? base.security.slice() : base.traffic.slice());
+
+    if (kind==='traffic' || view==='traffic'){
+      const m = window.tcUtils.rushHourMultiplier(hour) * window.tcUtils.weekendMultiplier(day);
+      series = series.map((v,i)=> window.tcUtils.clamp(Math.round(v*m), 10, 99));
+      if (range==='7d'){
+        const wk = window.tcUtils.weekendMultiplier(day);
+        series = series.map(v=>Math.round(v*wk));
+      }
+      if (range==='30d'){
+        series = series.map((v,i)=> Math.round(v * (1 + 0.05*Math.sin((i/series.length)*Math.PI*2))));
+      }
+    }
+    if (view==='environment'){
+      const eventBoost = (Math.random()<0.15) ? 1.12 : 1.0;
+      series = series.map(v=> Math.round(window.tcUtils.clamp(v*eventBoost, 20, 99)));
+    }
+
+    series = series.map(v => Math.round(window.tcUtils.jitterBounded(v*factor, 0.06, 10, 99)));
+    return series;
+  },
+  computeSectorKpis: function(view, range){
+    const data = window.tcData?.[view]?.kpis || {};
+    // Cross-sector influences (simple model)
+    const t = window.tcData?.traffic?.kpis;
+    const env = window.tcData?.environment?.kpis;
+    const health = window.tcData?.health?.kpis;
+    if (t && env) {
+      const congestion = (t.manamaCongestion + t.muharraqCongestion)/2;
+      if (view === 'environment') {
+        data.aqiManama = Math.round((env.aqiManama + congestion * 20));
+        data.aqiMuharraq = Math.round((env.aqiMuharraq + congestion * 18));
+      }
+      if (view === 'health' && health) {
+        data.erDemandIdx = +(health.erDemandIdx + congestion*0.05).toFixed(2);
+      }
+    }
+    // Time range scaling
+    const factor = range==='7d' ? 1.05 : range==='30d' ? 1.12 : 1.0;
+    const scaled = {};
+    Object.keys(data).forEach(k=>{
+      const v = data[k];
+      scaled[k] = typeof v === 'number' ? +(v*factor).toFixed(2) : v;
+    });
+    return scaled;
+  },
+  renderKpiRow: function(view, range){
+    const row = document.getElementById('kpiRow');
+    if (!row) return;
+
+    // Tooltip legend for cross-sector influences
+    const legend = document.createElement('div');
+    legend.className = 'kpi-legend';
+    legend.style.gridColumn = '1 / -1';
+    legend.style.fontSize = '12px';
+    legend.style.color = '#6b7280';
+    legend.title = 'Traffic congestion increases AQI and ER demand; time range scales values. Real-time data includes bounded jitter.';
+    legend.textContent = 'ℹ️ Cross-sector influences and time scaling applied';
+    if (!row.nextSibling || !row.nextSibling.classList || !row.nextSibling.classList.contains('kpi-legend')) {
+      row.parentNode.insertBefore(legend, row.nextSibling);
+    }
+
+    const k = window.tcUtils.computeSectorKpis(view, range);
+    const formatPct = v => (v<=1? Math.round(v*100)+'%': v);
+    const byView = {
+      traffic: [
+        { label: 'Manama congestion', value: formatPct(k.manamaCongestion) },
+        { label: 'Muharraq congestion', value: formatPct(k.muharraqCongestion) },
+        { label: 'Parking utilization', value: formatPct(k.parkingUtil) },
+        { label: 'Transit on-time', value: formatPct(k.transitOnTime) }
+      ],
+      environment: [
+        { label: 'AQI Manama', value: k.aqiManama },
+        { label: 'AQI Muharraq', value: k.aqiMuharraq },
+        { label: 'Dust storm risk', value: formatPct(k.dustForecast) },
+        { label: 'Heat index (°C)', value: k.heatIndex }
+      ],
+      water: [
+        { label: 'Consumption (MLD)', value: k.consumptionMLD },
+        { label: 'Leak rate', value: formatPct(k.leakRate) },
+        { label: 'Desal efficiency', value: formatPct(k.desalEfficiency) },
+        { label: 'Smart meter anomalies', value: k.smartMeterAnoms }
+      ],
+      energy: [
+        { label: 'Solar gen (MW)', value: k.solarGenMW },
+        { label: 'Grid load (MW)', value: k.gridLoadMW },
+        { label: 'Peak shaved (MW)', value: k.peakShavedMW },
+        { label: 'Renewables share', value: formatPct(k.renewablesPct) }
+      ],
+      health: [
+        { label: 'ER demand index', value: k.erDemandIdx },
+        { label: 'ICU occupancy', value: formatPct(k.icuOccPct) },
+        { label: 'Diabetes prevalence', value: formatPct(k.diabetesPrev) },
+        { label: 'Obesity prevalence', value: formatPct(k.obesityPrev) }
+      ],
+      cybersecurity: [
+        { label: 'Network anomalies', value: k.anomalies },
+        { label: 'Phishing indicators', value: k.phishing },
+        { label: 'Critical alerts', value: k.criticalAlerts },
+        { label: 'Patch compliance', value: formatPct(k.patchCompliance) }
+      ],
+      infrastructure: [
+        { label: 'Active projects', value: k.activeProjects },
+        { label: 'On-time rate', value: formatPct(k.onTimePct) },
+        { label: 'Cost overrun risk', value: formatPct(k.costOverrunRisk) },
+        { label: 'Contractor score', value: formatPct(k.contractorScore) }
+      ],
+      executive: [
+        { label: 'Entities', value: window.tcData.executive.entities },
+        { label: 'Relationships', value: window.tcData.executive.relationships },
+        { label: 'Health', value: formatPct(window.tcData.executive.health/100) },
+        { label: 'Live alerts', value: document.querySelectorAll('.alert-item').length }
+      ]
+    };
+    const tiles = byView[view] || byView.executive;
+    row.innerHTML = tiles.map(t=>`<div class="kpi-tile"><div class="kpi-label">${t.label}</div><div class="kpi-value">${t.value ?? '—'}</div></div>`).join('');
+  }
+};
+
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeNavigation();
@@ -15,9 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearch();
     renderRoleBadge();
     initializeState();
-
-
-
 });
 
 // Render current role badge in nav and demo toolbar
@@ -33,33 +173,6 @@ function renderRoleBadge(){
 function setVideoSourceWithFallback(videoEl, candidates) {
   if (!videoEl || !candidates || !candidates.length) return;
 
-// Section background video utilities
-function initSectionBgVideos(){
-  const videos = document.querySelectorAll('[data-bg-video]');
-  if (!videos.length) return;
-  const candidatesByKey = {
-    cybersecurity: 'public/video-kpis/Usage Section background for Cybersecurity - Cybersecurity_prompt_bahrain_202508200431_sp.mp4',
-    traffic: 'public/video-kpis/Usage Section background for Traffic -Traffic__smart_202508200424_ioo4s.mp4',
-    environment: 'public/video-kpis/Usage Section background for Environment - Environment__air_202508200427_vpy54.mp4',
-    water: 'public/video-kpis/Usage Section background for Water - Water_management_prompt_202508200427_6tv5o.mp4',
-    energy: 'public/video-kpis/Usage Section background for Energy - Energy__renewables_202508200428_vdo1r.mp4',
-    health: 'public/video-kpis/Usage Section background for Health - Healthcare_prompt_salmaniya_202508200429_5ql.mp4',
-    infrastructure: 'public/video-kpis/Usage Section background for Infrastructure - Infrastructure_projects_prompt_202508200431_ (1).mp4'
-  };
-  videos.forEach(v=>{
-    const key = v.getAttribute('data-bg-video');
-    const src = candidatesByKey[key];
-    if (src) setVideoSourceWithFallback(v, [src]);
-  });
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const vid = entry.target;
-      if (entry.isIntersecting) vid.play().catch(()=>{});
-      else vid.pause();
-    });
-  }, { threshold: 0.25 });
-  videos.forEach(v=> io.observe(v));
-}
 
   let idx = 0;
   const tryNext = () => {
@@ -107,160 +220,7 @@ function initializeState(){
     health: { security: [90,92,95,96,97,98], traffic: [30,28,26,25,24], entities: 6789, relationships: 34567, health: 99,
       kpis: { erDemandIdx: 0.74, icuOccPct: 0.68, diabetesPrev: 0.19, obesityPrev: 0.29 } }
   };
-// Compute sector KPI tiles for current view & time range and cross-sector effects
-function computeSectorKpis(view, range){
-  const data = window.tcData?.[view]?.kpis || {};
-  // Cross-sector influences (simple model)
-  // If traffic congestion rises, AQI worsens slightly and ER demand ticks up
-  const t = window.tcData?.traffic?.kpis;
-  const env = window.tcData?.environment?.kpis;
-  const health = window.tcData?.health?.kpis;
-  if (t && env) {
-    const congestion = (t.manamaCongestion + t.muharraqCongestion)/2;
-    // degrade AQI by up to +8 points
-    if (view === 'environment') {
-      data.aqiManama = Math.round((env.aqiManama + congestion * 20));
-      data.aqiMuharraq = Math.round((env.aqiMuharraq + congestion * 18));
-    }
-    if (view === 'health' && health) {
-      data.erDemandIdx = +(health.erDemandIdx + congestion*0.05).toFixed(2);
-    }
-  }
-  // Time range scaling
-  const factor = range==='7d' ? 1.05 : range==='30d' ? 1.12 : 1.0;
-  const scaled = {};
-  Object.keys(data).forEach(k=>{
-    const v = data[k];
-    scaled[k] = typeof v === 'number' ? +(v*factor).toFixed(2) : v;
-  });
-  return scaled;
-}
-
-// --- Realism utilities (time patterns, stochastic variation) ---
-function nowContext(){
-  const d = new Date();
-  return { hour: d.getHours(), day: d.getDay(), isWeekend: d.getDay()===5 || d.getDay()===6 };
-}
-function rushHourMultiplier(hour){
-  // Morning 7-9, Evening 16-19
-  if ((hour>=7 && hour<=9) || (hour>=16 && hour<=19)) return 1.35;
-  if ((hour>=6 && hour<7) || (hour>19 && hour<=20)) return 1.15;
-  return 1.0;
-}
-function weekendMultiplier(day){
-  // Fri(5), Sat(6) in many GCC regions; lower commuter traffic
-  return (day===5 || day===6) ? 0.8 : 1.0;
-}
-function jitterBounded(value, pct=0.05, min=0, max=100){
-  const delta = value * pct * (Math.random()*2 - 1);
-  const v = value + delta;
-  return Math.max(min, Math.min(max, v));
-}
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-
-// Generate more realistic series per sector and range
-function getRealisticSeries(kind, view, range){
-  const { hour, day } = nowContext();
-  const base = (window.tcData?.[view]) || window.tcData?.executive || { security:[85,88,92,89,94,96], traffic:[70,65,80,90,60] };
-  const factor = range==='7d' ? 1.03 : range==='30d' ? 1.06 : 1.0;
-  let series = (kind==='security' ? base.security.slice() : base.traffic.slice());
-
-  if (kind==='traffic' || view==='traffic'){
-    // imprint rush hour + weekend
-    const m = rushHourMultiplier(hour) * weekendMultiplier(day);
-    series = series.map((v,i)=> clamp(Math.round(v*m), 10, 99));
-    if (range==='7d'){
-      // Slightly lower on weekend
-      const wk = weekendMultiplier(day);
-      series = series.map(v=>Math.round(v*wk));
-    }
-    if (range==='30d'){
-      // Weekly cycles
-      series = series.map((v,i)=> Math.round(v * (1 + 0.05*Math.sin((i/series.length)*Math.PI*2))));
-    }
-  }
-  if (view==='environment'){
-    // occasional dust/heat events
-    const eventBoost = (Math.random()<0.15) ? 1.12 : 1.0;
-    series = series.map(v=> Math.round(clamp(v*eventBoost, 20, 99)));
-  }
-
-  // apply range factor and jitter
-  series = series.map(v => Math.round(jitterBounded(v*factor, 0.06, 10, 99)));
-  return series;
-}
-
-
-function renderKpiRow(view, range){
-  const row = document.getElementById('kpiRow');
-  // Tooltip legend for cross-sector influences
-  const legend = document.createElement('div');
-  legend.className = 'kpi-legend';
-  legend.style.gridColumn = '1 / -1';
-  legend.style.fontSize = '12px';
-  legend.style.color = '#6b7280';
-  legend.title = 'Traffic congestion increases AQI and ER demand; time range scales values. Real-time data includes bounded jitter.';
-  legend.textContent = 'ℹ️ Cross-sector influences and time scaling applied';
-  if (!row.nextSibling || !row.nextSibling.classList || !row.nextSibling.classList.contains('kpi-legend')) {
-    row.parentNode.insertBefore(legend, row.nextSibling);
-  }
-
-  if (!row) return;
-  const k = computeSectorKpis(view, range);
-  const formatPct = v => (v<=1? Math.round(v*100)+'%': v);
-  const byView = {
-    traffic: [
-      { label: 'Manama congestion', value: formatPct(k.manamaCongestion) },
-      { label: 'Muharraq congestion', value: formatPct(k.muharraqCongestion) },
-      { label: 'Parking utilization', value: formatPct(k.parkingUtil) },
-      { label: 'Transit on-time', value: formatPct(k.transitOnTime) }
-    ],
-    environment: [
-      { label: 'AQI Manama', value: k.aqiManama },
-      { label: 'AQI Muharraq', value: k.aqiMuharraq },
-      { label: 'Dust storm risk', value: formatPct(k.dustForecast) },
-      { label: 'Heat index (°C)', value: k.heatIndex }
-    ],
-    water: [
-      { label: 'Consumption (MLD)', value: k.consumptionMLD },
-      { label: 'Leak rate', value: formatPct(k.leakRate) },
-      { label: 'Desal efficiency', value: formatPct(k.desalEfficiency) },
-      { label: 'Smart meter anomalies', value: k.smartMeterAnoms }
-    ],
-    energy: [
-      { label: 'Solar gen (MW)', value: k.solarGenMW },
-      { label: 'Grid load (MW)', value: k.gridLoadMW },
-      { label: 'Peak shaved (MW)', value: k.peakShavedMW },
-      { label: 'Renewables share', value: formatPct(k.renewablesPct) }
-    ],
-    health: [
-      { label: 'ER demand index', value: k.erDemandIdx },
-      { label: 'ICU occupancy', value: formatPct(k.icuOccPct) },
-      { label: 'Diabetes prevalence', value: formatPct(k.diabetesPrev) },
-      { label: 'Obesity prevalence', value: formatPct(k.obesityPrev) }
-    ],
-    cybersecurity: [
-      { label: 'Network anomalies', value: k.anomalies },
-      { label: 'Phishing indicators', value: k.phishing },
-      { label: 'Critical alerts', value: k.criticalAlerts },
-      { label: 'Patch compliance', value: formatPct(k.patchCompliance) }
-    ],
-    infrastructure: [
-      { label: 'Active projects', value: k.activeProjects },
-      { label: 'On-time rate', value: formatPct(k.onTimePct) },
-      { label: 'Cost overrun risk', value: formatPct(k.costOverrunRisk) },
-      { label: 'Contractor score', value: formatPct(k.contractorScore) }
-    ],
-    executive: [
-      { label: 'Entities', value: window.tcData.executive.entities },
-      { label: 'Relationships', value: window.tcData.executive.relationships },
-      { label: 'Health', value: formatPct(window.tcData.executive.health/100) },
-      { label: 'Live alerts', value: document.querySelectorAll('.alert-item').length }
-    ]
-  };
-  const tiles = byView[view] || byView.executive;
-  row.innerHTML = tiles.map(t=>`<div class="kpi-tile"><div class="kpi-label">${t.label}</div><div class="kpi-value">${t.value ?? '—'}</div></div>`).join('');
-}
+// Functions moved to window.tcUtils namespace (defined at top)
 
 }
 
@@ -290,6 +250,34 @@ function initializeNavigation() {
     }
 
     // Smooth scrolling for navigation links
+
+// Section background video utilities (placed after renderKpiRow is fully closed)
+function initSectionBgVideos(){
+  const videos = document.querySelectorAll('[data-bg-video]');
+  const candidatesByKey = {
+    cybersecurity: '/video-kpis/Usage Section background for Cybersecurity - Cybersecurity_prompt_bahrain_202508200431_sp.mp4',
+    traffic: '/video-kpis/Usage Section background for Traffic -Traffic__smart_202508200424_ioo4s.mp4',
+    environment: '/video-kpis/Usage Section background for Environment - Environment__air_202508200427_vpy54.mp4',
+    water: '/video-kpis/Usage Section background for Water - Water_management_prompt_202508200427_6tv5o.mp4',
+    energy: '/video-kpis/Usage Section background for Energy - Energy__renewables_202508200428_vdo1r.mp4',
+    health: '/video-kpis/Usage Section background for Health - Healthcare_prompt_salmaniya_202508200429_5ql.mp4',
+    infrastructure: '/video-kpis/Usage Section background for Infrastructure - Infrastructure_projects_prompt_202508200431_ (1).mp4'
+  };
+  if (!videos.length) return;
+  videos.forEach(v=>{
+    const src = candidatesByKey[v.getAttribute('data-bg-video')];
+    if (src) setVideoSourceWithFallback(v, [src]);
+  });
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const vid = entry.target;
+      if (entry.isIntersecting) vid.play().catch(()=>{});
+      else vid.pause();
+    });
+  }, { threshold: 0.25 });
+  videos.forEach(v=> io.observe(v));
+}
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -511,7 +499,7 @@ function initializeDemoControls() {
         viewSelect.addEventListener('change', function() {
             window.tcState && (window.tcState.view = this.value);
             updateDashboardView(this.value);
-            renderKpiRow(window.tcState.view, window.tcState.range);
+            window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
         });
     }
 
@@ -523,7 +511,7 @@ function initializeDemoControls() {
             const range = this.getAttribute('data-range');
             window.tcState && (window.tcState.range = range);
             updateTimeRange(range);
-            renderKpiRow(window.tcState.view, window.tcState.range);
+            window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
         });
     });
 
@@ -588,7 +576,7 @@ function updateLiveData() {
                 range === '30d' ? Array.from({length: 10}, (_,i)=>`Day ${i*3+1}`) :
                 ['00:00','04:00','08:00','12:00','16:00','20:00'];
             // Use realistic series for security
-            window.tcCharts.security.data.datasets[0].data = getRealisticSeries('security', view, range);
+            window.tcCharts.security.data.datasets[0].data = window.tcUtils.getRealisticSeries('security', view, range);
             window.tcCharts.security.update();
         }
         // Traffic/sector bar labels
@@ -609,7 +597,7 @@ function updateLiveData() {
                 window.tcCharts.traffic.data.labels = defs[v] || defs.traffic;
             }
             // Realistic traffic series
-            window.tcCharts.traffic.data.datasets[0].data = getRealisticSeries('traffic', window.tcState.view, range);
+            window.tcCharts.traffic.data.datasets[0].data = window.tcUtils.getRealisticSeries('traffic', window.tcState.view, range);
 
             window.tcCharts.traffic.update();
         }
@@ -656,14 +644,14 @@ function updateLiveData() {
             infrastructure: 'public/video-kpis/Usage Dashboard video for Infrastructure view -Infrastructure_projects_prompt_202508200431_.mp4'
         };
         const fallbackSources = {
-            executive: 'public/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
-            cybersecurity: 'public/videos/8_security_threat_202508200300_wi77v.mp4',
-            traffic: 'public/videos/9_traffic_flow_202508200300_4a7jp.mp4',
-            environment: 'public/videos/15_environmental_monitoring_202508200301_46l.mp4',
-            water: 'public/videos/Smart_infrastructure_in_202508200301_qeeuc.mp4',
-            energy: 'public/videos/Real_Time_Grid_Strain_Dashboard.mp4',
-            infrastructure: 'public/videos/Smart_city_infrastructure_202508200300_y1fx5.mp4',
-            health: 'public/videos/10_health_analytics_202508200300_oyqjd.mp4'
+            executive: '/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
+            cybersecurity: '/videos/8_security_threat_202508200300_wi77v.mp4',
+            traffic: '/videos/9_traffic_flow_202508200300_4a7jp.mp4',
+            environment: '/videos/15_environmental_monitoring_202508200301_46l.mp4',
+            water: '/videos/Smart_infrastructure_in_202508200301_qeeuc.mp4',
+            energy: '/videos/Real_Time_Grid_Strain_Dashboard.mp4',
+            infrastructure: '/videos/Smart_city_infrastructure_202508200300_y1fx5.mp4',
+            health: '/videos/10_health_analytics_202508200300_oyqjd.mp4'
         };
         const candidates = [];
         if (kpiSources[view]) candidates.push(kpiSources[view]);
@@ -691,11 +679,11 @@ function updateLiveData() {
     // Update charts for realism by view
     if (window.tcCharts) {
         if (window.tcCharts.security) {
-            window.tcCharts.security.data.datasets[0].data = getRealisticSeries('security', view, range);
+            window.tcCharts.security.data.datasets[0].data = window.tcUtils.getRealisticSeries('security', view, range);
             window.tcCharts.security.update();
         }
         if (window.tcCharts.traffic) {
-            window.tcCharts.traffic.data.datasets[0].data = getRealisticSeries('traffic', view, range);
+            window.tcCharts.traffic.data.datasets[0].data = window.tcUtils.getRealisticSeries('traffic', view, range);
             window.tcCharts.traffic.update();
         }
     }
@@ -1010,7 +998,7 @@ applyRolePermissions = function(role){
 
     if (dashboardVideo && videoModal && modalVideo) {
         dashboardVideo.addEventListener('click', () => {
-            modalVideo.src = 'public/videos/Digital_bahrain_network_202508200259_t1v94.mp4';
+            modalVideo.src = '/videos/Digital_bahrain_network_202508200259_t1v94.mp4';
             videoModal.classList.remove('hidden');
             modalVideo.play().catch(()=>{});
         });

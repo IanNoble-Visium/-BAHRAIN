@@ -27,8 +27,8 @@
     <meta property="twitter:description" content="AI-driven graph analytics platform for Bahrain's digital transformation">
     <meta property="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Manama_skyline.jpg/640px-Manama_skyline.jpg">
 
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,7 +45,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <img src="https://www.visiumtechnologies.com/wp-content/uploads/2023/05/Visium-Analytics-Logo-1.png" alt="Visium Technologies" class="logo">
+                <img src="/images/Improved Visium Tech LOGO.png" alt="Visium Technologies" class="logo">
             </div>
             <div class="nav-menu">
                 <a href="#home" class="nav-link">Home</a>
@@ -70,13 +70,11 @@
     </nav>
 
     <!-- Hero Section -->
-            <video class="hero-video" autoplay muted playsinline loop preload="metadata" data-bg-video="traffic">
-
     <section id="home" class="hero">
         <div class="hero-background">
             <video class="hero-video" autoplay muted playsinline loop preload="metadata">
-                <source src="public/videos/Bahrain_skyline_transition_202508200259_276vd.mp4" type="video/mp4">
-                <source src="public/videos/Nighttime_cityscape_with_202508060021_arch5.mp4" type="video/mp4">
+                <source src="/videos/Bahrain_skyline_transition_202508200259_276vd.mp4" type="video/mp4">
+                <source src="/videos/Nighttime_cityscape_with_202508060021_arch5.mp4" type="video/mp4">
             </video>
             <div class="hero-overlay"></div>
         </div>
@@ -254,166 +252,30 @@
     <!-- Demo Section -->
     <section id="demo" class="demo">
         <div class="container">
-                <div class="breadcrumbs">Home / Demo</div>
-
             <div class="section-header">
-                <h2 class="section-title">Interactive Demo Dashboard</h2>
+                <h2 class="section-title">Experience TruContext Live</h2>
                 <p class="section-subtitle">
-                    Experience TruContext's real-time analytics with sample Bahrain data visualizations.
+                    Access our interactive dashboard with real-time Bahrain data analytics and multi-sector insights.
                 </p>
             </div>
-            <div class="demo-container">
-                <div class="demo-controls">
-                    <div class="control-group">
-                        <label>View:</label>
-                        <select id="demo-view">
-                            <option value="executive">📊 Executive Dashboard</option>
-                            <option value="cybersecurity">🛡️ Cybersecurity Overview</option>
-                            <option value="traffic">🚦 Traffic Analytics</option>
-                            <option value="environment">🌬️ Environment & Air Quality</option>
-                            <option value="water">💧 Water Management</option>
-                            <option value="energy">⚡ Energy & Renewables</option>
-                            <option value="infrastructure">🏗️ Infrastructure Projects</option>
-                            <option value="health">🏥 Health Monitoring</option>
-                        </select>
+            <div class="demo-preview">
+                <div class="demo-card">
+                    <div class="demo-content">
+                        <h3>Interactive Dashboard</h3>
+                        <p>Explore real-time analytics across cybersecurity, traffic, environment, water, energy, health, and infrastructure sectors.</p>
+                        <ul class="demo-features">
+                            <li>✓ Live data visualization</li>
+                            <li>✓ Multi-sector KPI monitoring</li>
+                            <li>✓ Interactive maps and charts</li>
+                            <li>✓ Real-time alert management</li>
+                        </ul>
+                        <a href="#" id="openAuthModal" class="btn-primary">Access Dashboard</a>
                     </div>
-                    <div class="control-group">
-                        <label>Time Range:</label>
-                        <input type="search" id="globalSearch" class="search-input" placeholder="Search assets, alerts, locations..." />
-
-                        <div class="time-buttons">
-                            <button class="time-btn active" data-range="24h">24h</button>
-                            <button class="time-btn" data-range="7d">7d</button>
-                            <button class="time-btn" data-range="30d">30d</button>
-                        </div>
-                        <span id="roleBadgeTop" class="role-badge" title="Current role" style="margin-left:auto;"></span>
-
-                    </div>
-                    <div class="live-indicator">
-                        <span class="live-dot"></span>
-                        <span>Live Data</span>
-                    </div>
-                </div>
-
-                <div id="kpiRow" class="kpi-row" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px;">
-                    <div class="kpi-tile"><div class="kpi-label">KPI 1</div><div class="kpi-value">—</div></div>
-                    <div class="kpi-tile"><div class="kpi-label">KPI 2</div><div class="kpi-value">—</div></div>
-                    <div class="kpi-tile"><div class="kpi-label">KPI 3</div><div class="kpi-value">—</div></div>
-                    <div class="kpi-tile"><div class="kpi-label">KPI 4</div><div class="kpi-value">—</div></div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h4>Network Entities</h4>
-                        <div class="metric-value">
-                            <span class="number" data-target="15847">0</span>
-                            <span class="trend positive">+12%</span>
-                        </div>
-                        <p class="metric-label">All monitored assets</p>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <h4>Active Relationships</h4>
-                        <div class="metric-value">
-                            <span class="number" data-target="89234">0</span>
-                            <span class="trend positive">+8%</span>
-                        </div>
-                        <p class="metric-label">Network connections</p>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <h4>Threat Level</h4>
-                        <div class="metric-value">
-                            <span class="status-indicator low">LOW</span>
-                        </div>
-                        <p class="metric-label">Overall risk assessment</p>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <h4>System Health</h4>
-                        <div class="metric-value">
-                            <span class="health-score">98%</span>
-                            <span class="trend positive">+2%</span>
-                        </div>
-                        <p class="metric-label">Platform performance</p>
-                    </div>
-
-                    <div class="dashboard-card chart-card">
-                        <h4>Security Trends (24h)</h4>
-                        <canvas id="securityChart"></canvas>
-                    </div>
-
-                    <div class="dashboard-card chart-card">
-                        <h4>Traffic Flow Analysis</h4>
-                        <canvas id="trafficChart"></canvas>
-                    </div>
-
-                    <div class="dashboard-card graph-card">
-                        <h4>Network Topology</h4>
-                        <div id="cyGraph" class="network-visualization"></div>
-                    </div>
-                        <div class="alert-controls">
-                            <label>Severity:</label>
-                            <select id="alertSeverityFilter">
-                                <option value="all">All</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                            </select>
-                            <div class="control-group" style="margin-left:auto;">
-                                <label>Traffic Heatmap:</label>
-                                <select id="heatToggle">
-                                    <option value="off">Off</option>
-                                    <option value="on">On</option>
-                                </select>
-                            </div>
-                            <span id="roleBadge" class="role-badge" title="Current role"></span>
-                        </div>
-
-
-                        <div class="dashboard-card">
-                            <h4>Bahrain Map</h4>
-                            <div id="bhMap" class="map-container"></div>
-                        </div>
-
-                        <div class="dashboard-card video-card">
-                            <h4>Live Dashboard Feed</h4>
-                            <video id="dashboardVideo" autoplay muted loop playsinline controlslist="nodownload">
-                                <source src="public/videos/Realtime_data_flow_202508200300_dtvgx.mp4" type="video/mp4">
-                                <source src="public/videos/Dynamic_City_Map_Video_Ready.mp4" type="video/mp4">
-                            </video>
-                        </div>
-
-
-                    <div class="dashboard-card alert-card">
-                        <h4>Recent Alerts</h4>
-                        <div class="alert-list">
-                            <div class="alert-item low" data-severity="low">
-                                <span class="alert-time">14:32</span>
-                                <span class="alert-message">Traffic congestion detected - King Faisal Highway</span>
-                                <div class="actions">
-                                    <button class="ack-btn">Acknowledge</button>
-                                    <button class="resolve-btn">Resolve</button>
-                                </div>
-                            </div>
-                            <div class="alert-item medium" data-severity="medium">
-                                <span class="alert-time">13:45</span>
-                                <span class="alert-message">Unusual network activity - Financial District</span>
-                                <div class="actions">
-                                    <button class="ack-btn">Acknowledge</button>
-                                    <button class="resolve-btn">Resolve</button>
-                                </div>
-                            </div>
-
-                            <div class="alert-item low" data-severity="low">
-                                <span class="alert-time">12:18</span>
-                                <span class="alert-message">Water pressure anomaly - Manama Sector 7</span>
-                                <div class="actions">
-                                    <button class="ack-btn">Acknowledge</button>
-                                    <button class="resolve-btn">Resolve</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="demo-video">
+                        <video autoplay muted loop playsinline>
+                            <source src="/videos/Realtime_data_flow_202508200300_dtvgx.mp4" type="video/mp4">
+                            <source src="/videos/Dynamic_City_Map_Video_Ready.mp4" type="video/mp4">
+                        </video>
                     </div>
                 </div>
             </div>
@@ -690,6 +552,8 @@
                         <a href="#">Privacy Policy</a>
                         <a href="#">Terms of Service</a>
                         <a href="#">Security</a>
+    <script type="module" src="evmAsk.js"></script>
+
                     </div>
                 </div>
                 <div class="footer-badges">
@@ -701,7 +565,7 @@
         </div>
     </footer>
 
-    <script src="main.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
 
