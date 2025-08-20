@@ -1,33 +1,10 @@
 {
   "version": 2,
-  "name": "trucontext-bahrain-demo",
-  "trailingSlash": false,
-  "cleanUrls": true,
   "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "docs.html", "use": "@vercel/static" },
-    { "src": "styles.css", "use": "@vercel/static" },
-    { "src": "main.js", "use": "@vercel/static" },
-    { "src": "public/**", "use": "@vercel/static" }
+    { "src": "**", "use": "@vercel/static" }
   ],
-  "rewrites": [
-    { "source": "/", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/public/videos/(.*).mp4",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Accept-Ranges", "value": "bytes" }
-      ]
-    },
-    {
-      "source": "/public/video-kpis/(.*).mp4",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Accept-Ranges", "value": "bytes" }
-      ]
-    }
+  "routes": [
+    { "src": "/", "dest": "/index.html" }
   ]
 }
 
