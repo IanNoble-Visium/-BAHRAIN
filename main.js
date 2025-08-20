@@ -467,6 +467,9 @@ function updateTimeRange(range) {
 }
 
 function updateLiveData() {
+    const range = window.tcState?.range || '24h';
+    const view = window.tcState?.view || 'executive';
+
     // Simulate live data updates
     // Update x-axis labels for charts based on selected time range
     if (window.tcCharts && window.tcState) {
@@ -953,6 +956,11 @@ function applyRolePermissions(role) {
 function initializeMap() {
     const el = document.getElementById('bhMap');
     if (!el || !window.L) return;
+    // Prevent re-initialization of the same container
+    if (window.__bhMapInstance && window.__bhMapInstance.remove) {
+        window.__bhMapInstance.remove();
+        window.__bhMapInstance = null;
+    }
     const map = L.map('bhMap', { zoomControl: false }).setView([26.0667, 50.5577], 11);
     window.__bhMapInstance = map;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
