@@ -634,10 +634,9 @@ function initializeVideoSystem() {
 })();
 
 function renderRoleBadge(){
-    const el = document.getElementById('roleBadge');
-    if (!el) return;
     const role = localStorage.getItem('tc_role') || 'viewer';
-    el.textContent = `Role: ${role}`;
+    const els = [document.getElementById('roleBadge'), document.getElementById('roleBadgeTop')];
+    els.forEach(el => { if (el) el.textContent = `Role: ${role}`; });
 }
 
 // Refresh role gating when auth changes
