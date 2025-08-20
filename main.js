@@ -14,9 +14,34 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeContextGraph();
     initializeSearch();
     renderRoleBadge();
+    initializeState();
+
 
 
 });
+
+// App state and datasets
+function initializeState(){
+  window.tcState = { view: 'executive', range: '24h' };
+  const savedRole = localStorage.getItem('tc_role') || 'viewer';
+  // Initial datasets per view for realism
+  window.tcData = {
+    executive: { security: [85,88,92,89,94,96], traffic: [78,65,89,92,56], entities: 15847, relationships: 89234, health: 98 },
+    cybersecurity: { security: [78,82,86,84,90,93], traffic: [40,45,38,42,50], entities: 8934, relationships: 45621, health: 94 },
+    traffic: { security: [88,90,91,93,94,95], traffic: [72,68,85,95,62], entities: 12456, relationships: 67890, health: 96,
+      kpis: { manamaCongestion: 0.32, muharraqCongestion: 0.24, parkingUtil: 0.71, transitOnTime: 0.86 } },
+    environment: { security: [90,91,92,93,94,95], traffic: [35,30,28,26,25], entities: 9450, relationships: 52310, health: 97,
+      kpis: { aqiManama: 78, aqiMuharraq: 72, dustForecast: 0.3, heatIndex: 41 } },
+    water: { security: [92,92,93,94,94,95], traffic: [20,22,24,23,21], entities: 8122, relationships: 40231, health: 98,
+      kpis: { consumptionMLD: 390, leakRate: 0.07, desalEfficiency: 0.83, smartMeterAnoms: 42 } },
+    energy: { security: [89,90,92,92,93,94], traffic: [25,27,28,29,27], entities: 10011, relationships: 50120, health: 99,
+      kpis: { solarGenMW: 145, gridLoadMW: 1180, peakShavedMW: 42, renewablesPct: 0.12, carbonTpd: 1850 } },
+    infrastructure: { security: [84,85,87,86,88,90], traffic: [40,42,45,48,50], entities: 6211, relationships: 35002, health: 96,
+      kpis: { activeProjects: 128, onTimePct: 0.82, costOverrunRisk: 0.18, contractorScore: 0.76 } },
+    health: { security: [90,92,95,96,97,98], traffic: [30,28,26,25,24], entities: 6789, relationships: 34567, health: 99,
+      kpis: { erDemandIdx: 0.74, icuOccPct: 0.68, diabetesPrev: 0.19, obesityPrev: 0.29 } }
+  };
+}
 
 // Navigation functionality
 function initializeNavigation() {
@@ -140,7 +165,13 @@ function initializeCharts() {
             data: {
                 labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
                 datasets: [{
-                    label: 'Security Score',
+                    label: () => {
+                            const v = window.tcState?.view || 'executive';
+                            return v === 'cybersecurity' ? 'Threat Detections' :
+                                   v === 'environment' ? 'Air Quality Index (scaled)' :
+                                   v === 'energy' ? 'Grid Stability Score' :
+                                   'Security Score';
+                        },
                     data: [85, 88, 92, 89, 94, 96],
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -167,6 +198,19 @@ function initializeCharts() {
                         }
                     },
                     x: {
+        // Adjust x-axis labels per time range for realism
+        if (window.tcState) {
+            const range = window.tcState.range;
+            if (range === '7d') {
+                window.tcCharts.security.data.labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            } else if (range === '30d') {
+                window.tcCharts.security.data.labels = Array.from({length: 10}, (_,i)=>`Day ${i*3+1}`);
+            } else {
+                window.tcCharts.security.data.labels = ['00:00','04:00','08:00','12:00','16:00','20:00'];
+            }
+            window.tcCharts.security.update();
+        }
+
                         grid: {
                             color: '#e5e7eb'
                         }
@@ -188,9 +232,24 @@ function initializeCharts() {
         window.tcCharts.traffic = new Chart(trafficCtx, {
             type: 'bar',
             data: {
-                labels: ['King Faisal Hwy', 'Sheikh Khalifa Hwy', 'Diplomatic Area', 'Manama Center', 'Muharraq Bridge'],
+                labels: () => {
+                        const v = window.tcState?.view || 'executive';
+                        if (v === 'environment') return ['Manama', 'Muharraq', 'Riffa', 'Isa Town', 'Sitra'];
+                        if (v === 'water') return ['West Network', 'North Network', 'East Network', 'South Network', 'Industrial'];
+                        if (v === 'energy') return ['North Grid', 'South Grid', 'West Grid', 'East Grid', 'Manama'];
+                        if (v === 'infrastructure') return ['Airport Exp.', 'Metro', 'Water Main', 'Port Upgrade', 'Housing'];
+                        return ['King Faisal Hwy', 'Sheikh Khalifa Hwy', 'Diplomatic Area', 'Manama Center', 'Muharraq Bridge'];
+                    },
                 datasets: [{
-                    label: 'Traffic Flow',
+                    label: () => {
+                        const v = window.tcState?.view || 'executive';
+                        return v === 'traffic' ? 'Traffic Flow' :
+                               v === 'environment' ? 'AQI by District' :
+                               v === 'water' ? 'Water Flow/Anomaly Index' :
+                               v === 'energy' ? 'Grid Load % by Zone' :
+                               v === 'infrastructure' ? 'Project Progress %' :
+                               'Traffic Flow';
+                    },
                     data: [78, 65, 89, 92, 56],
                     backgroundColor: [
                         '#ef4444',
@@ -242,6 +301,7 @@ function initializeDemoControls() {
     // View selector
     if (viewSelect) {
         viewSelect.addEventListener('change', function() {
+            window.tcState && (window.tcState.view = this.value);
             updateDashboardView(this.value);
         });
     }
@@ -251,7 +311,9 @@ function initializeDemoControls() {
         btn.addEventListener('click', function() {
             timeButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            updateTimeRange(this.getAttribute('data-range'));
+            const range = this.getAttribute('data-range');
+            window.tcState && (window.tcState.range = range);
+            updateTimeRange(range);
         });
     });
 
@@ -273,6 +335,21 @@ function updateDashboardView(view) {
     // Update metrics based on view
     const metrics = getDashboardMetrics(view);
     updateDashboardMetrics(metrics);
+    if (window.tcData && window.tcState) {
+        const v = window.tcState.view;
+        // Sync tiles with dataset
+        const data = window.tcData[v];
+        // entities/relationships/health reflect in updateDashboardMetrics already via metrics
+        // Directly nudge charts too for immediate feedback
+        if (window.tcCharts && window.tcCharts.security) {
+            window.tcCharts.security.data.datasets[0].data = data.security.slice();
+            window.tcCharts.security.update();
+        }
+        if (window.tcCharts && window.tcCharts.traffic) {
+            window.tcCharts.traffic.data.datasets[0].data = data.traffic.slice();
+            window.tcCharts.traffic.update();
+        }
+    }
 }
 
 function updateTimeRange(range) {
@@ -310,6 +387,19 @@ function updateLiveData() {
             health: 'publc/videos/10_health_analytics_202508200300_oyqjd.mp4'
         };
         const src = sources[view] || sources.executive;
+    // Use tcData per current view
+    if (window.tcData && window.tcState) {
+        const v = window.tcState.view;
+        if (window.tcCharts && window.tcCharts.security) {
+            window.tcCharts.security.data.datasets[0].data = window.tcData[v].security.slice();
+            window.tcCharts.security.update();
+        }
+        if (window.tcCharts && window.tcCharts.traffic) {
+            window.tcCharts.traffic.data.datasets[0].data = window.tcData[v].traffic.slice();
+            window.tcCharts.traffic.update();
+        }
+    }
+
         const playing = !video.paused;
         video.querySelector('source').src = src;
         video.load();
@@ -338,34 +428,23 @@ function updateLiveData() {
 }
 
 function getDashboardMetrics(view) {
-    const metrics = {
-        executive: {
-            entities: 15847,
-            relationships: 89234,
-            threatLevel: 'LOW',
-            health: 98
-        },
-        cybersecurity: {
-            entities: 8934,
-            relationships: 45621,
-            threatLevel: 'MEDIUM',
-            health: 94
-        },
-        traffic: {
-            entities: 12456,
-            relationships: 67890,
-            threatLevel: 'LOW',
-            health: 96
-        },
-        health: {
-            entities: 6789,
-            relationships: 34567,
-            threatLevel: 'LOW',
-            health: 99
-        }
+    const base = {
+        entities: 15847,
+        relationships: 89234,
+        threatLevel: 'LOW',
+        health: 98
     };
-
-    return metrics[view] || metrics.executive;
+    const map = {
+        executive: base,
+        cybersecurity: { entities: 8934, relationships: 45621, threatLevel: 'MEDIUM', health: 94 },
+        traffic: { entities: 12456, relationships: 67890, threatLevel: 'LOW', health: 96 },
+        environment: { entities: 9450, relationships: 52310, threatLevel: 'LOW', health: 97 },
+        water: { entities: 8122, relationships: 40231, threatLevel: 'LOW', health: 98 },
+        energy: { entities: 10011, relationships: 50120, threatLevel: 'LOW', health: 99 },
+        infrastructure: { entities: 6211, relationships: 35002, threatLevel: 'LOW', health: 96 },
+        health: { entities: 6789, relationships: 34567, threatLevel: 'LOW', health: 99 }
+    };
+    return map[view] || base;
 }
 
 function updateDashboardMetrics(metrics) {
@@ -709,6 +788,7 @@ function initializeMap() {
     const el = document.getElementById('bhMap');
     if (!el || !window.L) return;
     const map = L.map('bhMap', { zoomControl: false }).setView([26.0667, 50.5577], 11);
+    window.__bhMapInstance = map;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '© OpenStreetMap'

@@ -663,6 +663,10 @@ section {
 
 .metric-label {
     color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
 /* Alert controls */
 .alert-controls{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem}
 .alert-controls select,.alert-controls button{padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
@@ -670,10 +674,6 @@ section {
 .alert-item .actions button{padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer}
 .alert-item.resolved{opacity:.6;}
 .role-badge{margin-left:.5rem;padding:2px 8px;border-radius:12px;background:#e5e7eb;color:#374151;font-size:.75rem}
-
-    font-size: 0.875rem;
-    margin: 0;
-}
 
 .status-indicator {
     padding: 4px 12px;
