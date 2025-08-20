@@ -18,6 +18,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+// Helper: set video src with fallbacks
+function setVideoSourceWithFallback(videoEl, candidates) {
+  if (!videoEl || !candidates || !candidates.length) return;
+  let idx = 0;
+  const tryNext = () => {
+    if (idx >= candidates.length) return;
+    const src = candidates[idx++];
+    const sourceEl = videoEl.querySelector('source') || document.createElement('source');
+    if (!sourceEl.parentElement) videoEl.appendChild(sourceEl);
+    sourceEl.src = src;
+    const onError = () => {
+      videoEl.removeEventListener('error', onError);
+      tryNext();
+    };
+    const onCanPlay = () => {
+      videoEl.removeEventListener('canplay', onCanPlay);
+    };
+    videoEl.addEventListener('error', onError, { once: true });
+    videoEl.addEventListener('canplay', onCanPlay, { once: true });
+    videoEl.load();
+  };
+  tryNext();
+}
+
 });
 
 // App state and datasets
