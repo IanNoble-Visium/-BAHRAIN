@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
+// Render current role badge in nav and demo toolbar
+function renderRoleBadge(){
+  const role = localStorage.getItem('tc_role') || 'viewer';
+  const els = [document.getElementById('roleBadge'), document.getElementById('roleBadgeTop')];
+  els.forEach(el => { if (el) el.textContent = `Role: ${role}`; });
+}
+
+
 
 // Helper: set video src with fallbacks (global)
 function setVideoSourceWithFallback(videoEl, candidates) {
@@ -883,11 +891,6 @@ function initializeVideoSystem() {
     wireActions();
 })();
 
-function renderRoleBadge(){
-    const role = localStorage.getItem('tc_role') || 'viewer';
-    const els = [document.getElementById('roleBadge'), document.getElementById('roleBadgeTop')];
-    els.forEach(el => { if (el) el.textContent = `Role: ${role}`; });
-}
 
 // Refresh role gating when auth changes
 const _applyRolePermissions = applyRolePermissions;
@@ -940,6 +943,7 @@ function initializeAuth() {
             localStorage.setItem('tc_role', role);
             close();
             applyRolePermissions(role);
+            window.location.href = '/dashboard.html';
         });
     }
 
