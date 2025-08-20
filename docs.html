@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs | TruContext Bahrain</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .docs { padding: 80px 0; }
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1rem; }
+    .doc-card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:1rem; }
+    .doc-card h4 { margin: 0 0 .5rem; color:#111827; font-size:1rem; }
+    .doc-meta { color:#6b7280; font-size:.875rem; }
+    .doc-actions { display:flex; gap:.5rem; margin-top:.75rem; }
+    .doc-actions a { text-decoration:none; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="/"><img src="https://www.visiumtechnologies.com/wp-content/uploads/2023/05/Visium-Analytics-Logo-1.png" alt="Visium" class="logo"></a>
+      </div>
+      <div class="nav-menu">
+        <a href="/index.html#home" class="nav-link">Home</a>
+        <a href="/index.html#demo" class="nav-link">Demo</a>
+        <a href="/docs.html" class="nav-link">Docs</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="docs">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Documentation</h2>
+        <p class="section-subtitle">Browse project documents used to shape this demo.</p>
+      </div>
+
+      <div id="docsList" class="docs-grid"></div>
+    </div>
+  </section>
+
+  <script>
+  // Lightweight manifest of files under publc/docs. In a real backend we'd enumerate dynamically.
+  const docs = [
+    { file: 'Baharain needs.txt', type: 'text' },
+    { file: 'Bahrain Priceing.txt', type: 'text' },
+    { file: "Bahrain Project Proposal draft v2.pdf", type: 'pdf' },
+    { file: 'Bahrain use cases.pdf', type: 'pdf' },
+    { file: "Bahrain's _$56 Million AI Brain_ Pricing a Nation's Digital Transformation.mp3", type: 'audio' },
+    { file: 'TruContext - Bahrain Services.txt', type: 'text' }
+  ];
+
+  function iconFor(type){
+    if (type==='pdf') return '📄';
+    if (type==='audio') return '🎧';
+    return '📝';
+  }
+
+  function renderDocs(){
+    const list = document.getElementById('docsList');
+    docs.forEach(d => {
+      const url = `publc/docs/${encodeURIComponent(d.file)}`;
+      const card = document.createElement('div');
+      card.className = 'doc-card';
+      card.innerHTML = `
+        <h4>${iconFor(d.type)} ${d.file}</h4>
+        <div class="doc-meta">Type: ${d.type.toUpperCase()}</div>
+        <div class="doc-actions">
+          <a class="btn-secondary" href="${url}" target="_blank" rel="noopener">Open</a>
+          <a class="btn-primary" href="${url}" download>Download</a>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', renderDocs);
+  </script>
+</body>
+</html>
+
