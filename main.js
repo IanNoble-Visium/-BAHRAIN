@@ -635,13 +635,13 @@ function updateLiveData() {
     const video = document.getElementById('dashboardVideo');
     if (video) {
         const kpiSources = {
-            traffic: 'public/video-kpis/Usage Dashboard video for Traffic - view_sector_traffic_202508200423_g1b9a.mp4',
-            environment: 'public/video-kpis/Usage Dashboard video for Environment view - Environment__air_202508200424_i0jb0.mp4',
-            water: 'public/video-kpis/Usage Dashboard video for Water view - Environment__air_202508200427_oguhe.mp4',
-            energy: 'public/video-kpis/Usage Dashboard video for Energy view - Water_management_prompt_202508200428_tqwni.mp4',
-            health: 'public/video-kpis/Usage Dashboard video for Health view - Energy__renewables_202508200429_ow7sw.mp4',
-            cybersecurity: 'public/video-kpis/Usage Dashboard video for Cybersecurity view - Healthcare_prompt_hospital_202508200430_4m1c.mp4',
-            infrastructure: 'public/video-kpis/Usage Dashboard video for Infrastructure view -Infrastructure_projects_prompt_202508200431_.mp4'
+            traffic: '/video-kpis/Usage Dashboard video for Traffic - view_sector_traffic_202508200423_g1b9a.mp4',
+            environment: '/video-kpis/Usage Dashboard video for Environment view - Environment__air_202508200424_i0jb0.mp4',
+            water: '/video-kpis/Usage Dashboard video for Water view - Environment__air_202508200427_oguhe.mp4',
+            energy: '/video-kpis/Usage Dashboard video for Energy view - Water_management_prompt_202508200428_tqwni.mp4',
+            health: '/video-kpis/Usage Dashboard video for Health view - Energy__renewables_202508200429_ow7sw.mp4',
+            cybersecurity: '/video-kpis/Usage Dashboard video for Cybersecurity view - Healthcare_prompt_hospital_202508200430_4m1c.mp4',
+            infrastructure: '/video-kpis/Usage Dashboard video for Infrastructure view -Infrastructure_projects_prompt_202508200431_.mp4'
         };
         const fallbackSources = {
             executive: '/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
@@ -845,11 +845,11 @@ window.addEventListener('error', function(e) {
 
     // Alert -> video mapping
     const alertVideoMap = {
-        traffic: 'public/video-kpis/Usage Alert modal for congestionincident - Traffic__smart_202508200424_7ritq.mp4',
-        network: 'public/video-kpis/Usage Alert modal for critical infra incidents - Cybersecurity_prompt_soc_202508200431_h6ar5.mp4',
-        water: 'public/video-kpis/Usage Alert modal for leak events - Water_management_prompt_202508200427_o0yt6.mp4',
-        health: 'public/video-kpis/Usage Alert modal for capacity alerts -Healthcare_prompt_salmaniya_202508200430_7ml.mp4',
-        environment: 'public/video-kpis/Usage Alert modal for dustpollution events - Environment__air_202508200427_0tmxt.mp4'
+        traffic: '/video-kpis/Usage Alert modal for congestionincident - Traffic__smart_202508200424_7ritq.mp4',
+        network: '/video-kpis/Usage Alert modal for critical infra incidents - Cybersecurity_prompt_soc_202508200431_h6ar5.mp4',
+        water: '/video-kpis/Usage Alert modal for leak events - Water_management_prompt_202508200427_o0yt6.mp4',
+        health: '/video-kpis/Usage Alert modal for capacity alerts -Healthcare_prompt_salmaniya_202508200430_7ml.mp4',
+        environment: '/video-kpis/Usage Alert modal for dustpollution events - Environment__air_202508200427_0tmxt.mp4'
     };
     document.querySelectorAll('.alert-item').forEach(item => {
         item.style.cursor = 'pointer';
