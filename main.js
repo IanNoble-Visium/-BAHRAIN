@@ -333,13 +333,13 @@ function initializeCharts() {
             type: 'bar',
             data: {
                 labels: () => {
-                        const v = window.tcState?.view || 'executive';
-                        if (v === 'environment') return ['Manama', 'Muharraq', 'Riffa', 'Isa Town', 'Sitra'];
-                        if (v === 'water') return ['West Network', 'North Network', 'East Network', 'South Network', 'Industrial'];
-                        if (v === 'energy') return ['North Grid', 'South Grid', 'West Grid', 'East Grid', 'Manama'];
-                        if (v === 'infrastructure') return ['Airport Exp.', 'Metro', 'Water Main', 'Port Upgrade', 'Housing'];
-                        return ['King Faisal Hwy', 'Sheikh Khalifa Hwy', 'Diplomatic Area', 'Manama Center', 'Muharraq Bridge'];
-                    },
+                    const v = window.tcState?.view || 'executive';
+                    if (v === 'environment') return ['Manama', 'Muharraq', 'Riffa', 'Isa Town', 'Sitra'];
+                    if (v === 'water') return ['West Network', 'North Network', 'East Network', 'South Network', 'Industrial'];
+                    if (v === 'energy') return ['North Grid', 'South Grid', 'West Grid', 'East Grid', 'Manama'];
+                    if (v === 'infrastructure') return ['Airport Exp.', 'Metro', 'Water Main', 'Port Upgrade', 'Housing'];
+                    return ['King Faisal Hwy', 'Sheikh Khalifa Hwy', 'Diplomatic Area', 'Manama Center', 'Muharraq Bridge'];
+                },
                 datasets: [{
                     label: () => {
                         const v = window.tcState?.view || 'executive';
@@ -347,9 +347,6 @@ function initializeCharts() {
                                v === 'environment' ? 'AQI by District' :
                                v === 'water' ? 'Water Flow/Anomaly Index' :
                                v === 'energy' ? 'Grid Load % by Zone' :
-    // Initialize KPI row on load
-    renderKpiRow(window.tcState.view, window.tcState.range);
-
                                v === 'infrastructure' ? 'Project Progress %' :
                                'Traffic Flow';
                     },
@@ -361,24 +358,6 @@ function initializeCharts() {
                         '#ef4444',
                         '#10b981'
                     ],
-                    // Adjust labels for traffic chart by time range
-                    if (window.tcState) {
-                        const range = window.tcState.range;
-                        if (range === '7d') {
-                            window.tcCharts.traffic.data.labels = ['Man','Tue','Wed','Thu','Fri','Sat','Sun'];
-                        } else if (range === '30d') {
-                            window.tcCharts.traffic.data.labels = Array.from({length: 10}, (_,i)=>`Wk ${i+1}`);
-                        } else {
-                            const v = window.tcState.view;
-                            if (v === 'environment') window.tcCharts.traffic.data.labels = ['Manama','Muharraq','Riffa','Isa Town','Sitra'];
-                            else if (v === 'water') window.tcCharts.traffic.data.labels = ['West','North','East','South','Industrial'];
-                            else if (v === 'energy') window.tcCharts.traffic.data.labels = ['North','South','West','East','Manama'];
-                            else if (v === 'infrastructure') window.tcCharts.traffic.data.labels = ['Airport','Metro','Water Main','Port','Housing'];
-                            else window.tcCharts.traffic.data.labels = ['King Faisal Hwy','Sheikh Khalifa Hwy','Diplomatic','Manama Center','Muharraq Bridge'];
-                        }
-                        window.tcCharts.traffic.update();
-                    }
-
                     borderRadius: 4
                 }]
             },
