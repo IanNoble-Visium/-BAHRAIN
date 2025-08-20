@@ -15,6 +15,17 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+  <script>
+    // Simple access control: require role in localStorage
+    (function(){
+      var role = localStorage.getItem('tc_role');
+      if (!role) {
+        // No role -> bounce to main site
+        window.location.replace('/');
+      }
+    })();
+  </script>
+
 </head>
 <body>
   <nav class="navbar">

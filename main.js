@@ -32,6 +32,35 @@ function renderRoleBadge(){
 // Helper: set video src with fallbacks (global)
 function setVideoSourceWithFallback(videoEl, candidates) {
   if (!videoEl || !candidates || !candidates.length) return;
+
+// Section background video utilities
+function initSectionBgVideos(){
+  const videos = document.querySelectorAll('[data-bg-video]');
+  if (!videos.length) return;
+  const candidatesByKey = {
+    cybersecurity: 'public/video-kpis/Usage Section background for Cybersecurity - Cybersecurity_prompt_bahrain_202508200431_sp.mp4',
+    traffic: 'public/video-kpis/Usage Section background for Traffic -Traffic__smart_202508200424_ioo4s.mp4',
+    environment: 'public/video-kpis/Usage Section background for Environment - Environment__air_202508200427_vpy54.mp4',
+    water: 'public/video-kpis/Usage Section background for Water - Water_management_prompt_202508200427_6tv5o.mp4',
+    energy: 'public/video-kpis/Usage Section background for Energy - Energy__renewables_202508200428_vdo1r.mp4',
+    health: 'public/video-kpis/Usage Section background for Health - Healthcare_prompt_salmaniya_202508200429_5ql.mp4',
+    infrastructure: 'public/video-kpis/Usage Section background for Infrastructure - Infrastructure_projects_prompt_202508200431_ (1).mp4'
+  };
+  videos.forEach(v=>{
+    const key = v.getAttribute('data-bg-video');
+    const src = candidatesByKey[key];
+    if (src) setVideoSourceWithFallback(v, [src]);
+  });
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const vid = entry.target;
+      if (entry.isIntersecting) vid.play().catch(()=>{});
+      else vid.pause();
+    });
+  }, { threshold: 0.25 });
+  videos.forEach(v=> io.observe(v));
+}
+
   let idx = 0;
   const tryNext = () => {
     if (idx >= candidates.length) return;
@@ -107,8 +136,75 @@ function computeSectorKpis(view, range){
   return scaled;
 }
 
+// --- Realism utilities (time patterns, stochastic variation) ---
+function nowContext(){
+  const d = new Date();
+  return { hour: d.getHours(), day: d.getDay(), isWeekend: d.getDay()===5 || d.getDay()===6 };
+}
+function rushHourMultiplier(hour){
+  // Morning 7-9, Evening 16-19
+  if ((hour>=7 && hour<=9) || (hour>=16 && hour<=19)) return 1.35;
+  if ((hour>=6 && hour<7) || (hour>19 && hour<=20)) return 1.15;
+  return 1.0;
+}
+function weekendMultiplier(day){
+  // Fri(5), Sat(6) in many GCC regions; lower commuter traffic
+  return (day===5 || day===6) ? 0.8 : 1.0;
+}
+function jitterBounded(value, pct=0.05, min=0, max=100){
+  const delta = value * pct * (Math.random()*2 - 1);
+  const v = value + delta;
+  return Math.max(min, Math.min(max, v));
+}
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+// Generate more realistic series per sector and range
+function getRealisticSeries(kind, view, range){
+  const { hour, day } = nowContext();
+  const base = (window.tcData?.[view]) || window.tcData?.executive || { security:[85,88,92,89,94,96], traffic:[70,65,80,90,60] };
+  const factor = range==='7d' ? 1.03 : range==='30d' ? 1.06 : 1.0;
+  let series = (kind==='security' ? base.security.slice() : base.traffic.slice());
+
+  if (kind==='traffic' || view==='traffic'){
+    // imprint rush hour + weekend
+    const m = rushHourMultiplier(hour) * weekendMultiplier(day);
+    series = series.map((v,i)=> clamp(Math.round(v*m), 10, 99));
+    if (range==='7d'){
+      // Slightly lower on weekend
+      const wk = weekendMultiplier(day);
+      series = series.map(v=>Math.round(v*wk));
+    }
+    if (range==='30d'){
+      // Weekly cycles
+      series = series.map((v,i)=> Math.round(v * (1 + 0.05*Math.sin((i/series.length)*Math.PI*2))));
+    }
+  }
+  if (view==='environment'){
+    // occasional dust/heat events
+    const eventBoost = (Math.random()<0.15) ? 1.12 : 1.0;
+    series = series.map(v=> Math.round(clamp(v*eventBoost, 20, 99)));
+  }
+
+  // apply range factor and jitter
+  series = series.map(v => Math.round(jitterBounded(v*factor, 0.06, 10, 99)));
+  return series;
+}
+
+
 function renderKpiRow(view, range){
   const row = document.getElementById('kpiRow');
+  // Tooltip legend for cross-sector influences
+  const legend = document.createElement('div');
+  legend.className = 'kpi-legend';
+  legend.style.gridColumn = '1 / -1';
+  legend.style.fontSize = '12px';
+  legend.style.color = '#6b7280';
+  legend.title = 'Traffic congestion increases AQI and ER demand; time range scales values. Real-time data includes bounded jitter.';
+  legend.textContent = 'ℹ️ Cross-sector influences and time scaling applied';
+  if (!row.nextSibling || !row.nextSibling.classList || !row.nextSibling.classList.contains('kpi-legend')) {
+    row.parentNode.insertBefore(legend, row.nextSibling);
+  }
+
   if (!row) return;
   const k = computeSectorKpis(view, range);
   const formatPct = v => (v<=1? Math.round(v*100)+'%': v);
@@ -491,6 +587,8 @@ function updateLiveData() {
             window.tcCharts.security.data.labels = range === '7d' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] :
                 range === '30d' ? Array.from({length: 10}, (_,i)=>`Day ${i*3+1}`) :
                 ['00:00','04:00','08:00','12:00','16:00','20:00'];
+            // Use realistic series for security
+            window.tcCharts.security.data.datasets[0].data = getRealisticSeries('security', view, range);
             window.tcCharts.security.update();
         }
         // Traffic/sector bar labels
@@ -510,6 +608,9 @@ function updateLiveData() {
                 };
                 window.tcCharts.traffic.data.labels = defs[v] || defs.traffic;
             }
+            // Realistic traffic series
+            window.tcCharts.traffic.data.datasets[0].data = getRealisticSeries('traffic', window.tcState.view, range);
+
             window.tcCharts.traffic.update();
         }
     }
@@ -590,11 +691,11 @@ function updateLiveData() {
     // Update charts for realism by view
     if (window.tcCharts) {
         if (window.tcCharts.security) {
-            window.tcCharts.security.data.datasets[0].data = generateRandomData(6, 82, 99);
+            window.tcCharts.security.data.datasets[0].data = getRealisticSeries('security', view, range);
             window.tcCharts.security.update();
         }
-        if (window.tcCharts.traffic && view === 'traffic') {
-            window.tcCharts.traffic.data.datasets[0].data = generateRandomData(5, 40, 98);
+        if (window.tcCharts.traffic) {
+            window.tcCharts.traffic.data.datasets[0].data = getRealisticSeries('traffic', view, range);
             window.tcCharts.traffic.update();
         }
     }
