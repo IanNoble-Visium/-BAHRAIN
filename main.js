@@ -457,7 +457,16 @@ function updateLiveData() {
     // Swap dashboard video by view
     const video = document.getElementById('dashboardVideo');
     if (video) {
-        const sources = {
+        const kpiSources = {
+            traffic: 'public/video-kpis/Usage Dashboard video for Traffic - view_sector_traffic_202508200423_g1b9a.mp4',
+            environment: 'public/video-kpis/Usage Dashboard video for Environment view - Environment__air_202508200424_i0jb0.mp4',
+            water: 'public/video-kpis/Usage Dashboard video for Water view - Environment__air_202508200427_oguhe.mp4',
+            energy: 'public/video-kpis/Usage Dashboard video for Energy view - Water_management_prompt_202508200428_tqwni.mp4',
+            health: 'public/video-kpis/Usage Dashboard video for Health view - Energy__renewables_202508200429_ow7sw.mp4',
+            cybersecurity: 'public/video-kpis/Usage Dashboard video for Cybersecurity view - Healthcare_prompt_hospital_202508200430_4m1c.mp4',
+            infrastructure: 'public/video-kpis/Usage Dashboard video for Infrastructure view -Infrastructure_projects_prompt_202508200431_.mp4'
+        };
+        const fallbackSources = {
             executive: 'public/videos/Realtime_data_flow_202508200300_dtvgx.mp4',
             cybersecurity: 'public/videos/8_security_threat_202508200300_wi77v.mp4',
             traffic: 'public/videos/9_traffic_flow_202508200300_4a7jp.mp4',
@@ -467,7 +476,11 @@ function updateLiveData() {
             infrastructure: 'public/videos/Smart_city_infrastructure_202508200300_y1fx5.mp4',
             health: 'public/videos/10_health_analytics_202508200300_oyqjd.mp4'
         };
-        const src = sources[view] || sources.executive;
+        const candidates = [];
+        if (kpiSources[view]) candidates.push(kpiSources[view]);
+        if (fallbackSources[view]) candidates.push(fallbackSources[view]);
+        candidates.push(fallbackSources.executive);
+        setVideoSourceWithFallback(video, candidates);
     // Use tcData per current view
     if (window.tcData && window.tcState) {
         const v = window.tcState.view;
@@ -482,9 +495,8 @@ function updateLiveData() {
     }
 
         const playing = !video.paused;
-        video.querySelector('source').src = src;
-        video.load();
-        if (playing) video.play().catch(()=>{});
+        // If already playing, try to resume after source resolution
+        setTimeout(()=>{ if (playing) video.play().catch(()=>{}); }, 200);
     }
 
     // Update charts for realism by view
