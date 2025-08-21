@@ -36,7 +36,15 @@
 
 .demo-controls {
     flex-shrink: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
 .kpi-row .kpi-tile{background:#fff;border-radius:8px;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -671,11 +679,14 @@ section {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
 }
 
 .control-group label {
     font-weight: 500;
     color: #374151;
+    font-size: 0.875rem;
+    white-space: nowrap;
 }
 
 .control-group select {
@@ -692,13 +703,15 @@ section {
 }
 
 .time-btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border: 1px solid #d1d5db;
     background: white;
     color: #374151;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .time-btn.active,
