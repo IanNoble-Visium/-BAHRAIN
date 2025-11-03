@@ -566,34 +566,7 @@ function initializeCharts() {
 // Initialize Domain Network Graph with ECharts
 function initializeDomainNetworkGraph() {
     const domainChartEl = document.getElementById('domainChart');
-    if (!domainChartEl) {
-        console.warn('Domain Network Graph: element not found');
-        return;
-    }
-    if (!window.echarts) {
-        console.warn('Domain Network Graph: ECharts library not loaded');
-        return;
-    }
-
-    // Check if element is visible
-    const isVisible = domainChartEl.offsetWidth > 0 && domainChartEl.offsetHeight > 0;
-    if (!isVisible) {
-        console.warn('Domain Network Graph: element not visible, retrying...');
-        setTimeout(() => initializeDomainNetworkGraph(), 200);
-        return;
-    }
-
-    console.log('✅ Initializing Domain Network Graph, dimensions:', domainChartEl.offsetWidth, 'x', domainChartEl.offsetHeight);
-
-    // Destroy existing chart instance if it exists
-    if (window.tcCharts?.domain) {
-        try {
-            window.tcCharts.domain.dispose();
-        } catch (e) {
-            console.warn('Error disposing domain chart:', e);
-        }
-        window.tcCharts.domain = null;
-    }
+    if (!domainChartEl || !window.echarts) return;
 
     const domainChart = window.echarts.init(domainChartEl);
 
@@ -606,36 +579,43 @@ function initializeDomainNetworkGraph() {
         { name: 'Edge Nodes', itemStyle: { color: '#9333ea' } }                // Bold Purple
     ];
 
-    // Reduced node set with larger sizes for better visibility
     const nodes = [
-        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 80 },
-        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 65 },
-        { id: '2', name: 'Firewall', value: 75, category: 1, symbolSize: 55 },
-        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 60 },
-        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 55 },
-        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 70 },
-        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 68 },
-        { id: '7', name: 'Edge Server', value: 60, category: 4, symbolSize: 52 },
-        { id: '8', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 62 },
-        { id: '9', name: 'API Gateway', value: 68, category: 0, symbolSize: 58 },
-        { id: '10', name: 'Load Balancer', value: 77, category: 0, symbolSize: 60 }
+        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 95 },
+        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 78 },
+        { id: '2', name: 'Firewall Cluster', value: 75, category: 1, symbolSize: 72 },
+        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 68 },
+        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 65 },
+        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 85 },
+        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 82 },
+        { id: '7', name: 'Edge Server 1', value: 60, category: 4, symbolSize: 62 },
+        { id: '8', name: 'Edge Server 2', value: 58, category: 4, symbolSize: 60 },
+        { id: '9', name: 'Edge Server 3', value: 56, category: 4, symbolSize: 58 },
+        { id: '10', name: 'Traffic Monitor', value: 72, category: 2, symbolSize: 70 },
+        { id: '11', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 76 },
+        { id: '12', name: 'API Gateway', value: 68, category: 0, symbolSize: 68 },
+        { id: '13', name: 'Load Balancer', value: 77, category: 0, symbolSize: 74 },
+        { id: '14', name: 'Backup System', value: 82, category: 3, symbolSize: 77 }
     ];
 
-    // Simplified links matching reduced node set
     const links = [
         { source: '0', target: '1', value: 10 },
         { source: '0', target: '5', value: 15 },
         { source: '0', target: '6', value: 14 },
-        { source: '0', target: '9', value: 12 },
-        { source: '0', target: '10', value: 13 },
+        { source: '0', target: '12', value: 12 },
+        { source: '0', target: '13', value: 13 },
         { source: '1', target: '2', value: 8 },
         { source: '1', target: '3', value: 7 },
         { source: '3', target: '4', value: 6 },
-        { source: '5', target: '8', value: 9 },
-        { source: '6', target: '8', value: 9 },
+        { source: '3', target: '10', value: 5 },
+        { source: '5', target: '11', value: 9 },
+        { source: '5', target: '14', value: 8 },
+        { source: '6', target: '11', value: 9 },
+        { source: '6', target: '14', value: 7 },
         { source: '7', target: '0', value: 4 },
-        { source: '9', target: '10', value: 6 },
-        { source: '8', target: '9', value: 7 }
+        { source: '8', target: '0', value: 4 },
+        { source: '9', target: '0', value: 4 },
+        { source: '12', target: '13', value: 6 },
+        { source: '11', target: '12', value: 7 }
     ];
 
     const option = {
@@ -666,22 +646,26 @@ function initializeDomainNetworkGraph() {
         },
         legend: [{
             data: categories.map(c => c.name),
-            orient: 'horizontal',
-            left: 'center',
-            top: 10,
+            orient: 'vertical',
+            left: 18,
+            top: 30,
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderColor: '#d1d5db',
             borderWidth: 2,
             borderRadius: 8,
-            padding: [10, 15],
+            padding: [15, 18],
             textStyle: {
                 color: '#111827',
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: '600'
             },
-            itemWidth: 18,
-            itemHeight: 18,
-            itemGap: 10
+            itemWidth: 22,
+            itemHeight: 22,
+            itemGap: 12,
+            shadowBlur: 8,
+            shadowColor: 'rgba(0, 0, 0, 0.15)',
+            shadowOffsetX: 0,
+            shadowOffsetY: 2
         }],
         animationDuration: 1500,
         animationEasingUpdate: 'quinticInOut',
@@ -696,18 +680,18 @@ function initializeDomainNetworkGraph() {
                 show: true,
                 position: 'right',
                 formatter: '{b}',
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: '700',
                 color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                padding: [4, 8],
-                borderRadius: 4,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: [6, 12],
+                borderRadius: 6,
                 borderColor: '#9ca3af',
-                borderWidth: 1.5,
-                shadowBlur: 4,
-                shadowColor: 'rgba(0, 0, 0, 0.2)',
+                borderWidth: 2,
+                shadowBlur: 6,
+                shadowColor: 'rgba(0, 0, 0, 0.25)',
                 shadowOffsetX: 0,
-                shadowOffsetY: 1
+                shadowOffsetY: 2
             },
             labelLayout: {
                 hideOverlap: false,
@@ -740,11 +724,11 @@ function initializeDomainNetworkGraph() {
                 }
             },
             force: {
-                repulsion: 800,
-                gravity: 0.03,
-                edgeLength: [150, 300],
+                repulsion: 450,
+                gravity: 0.06,
+                edgeLength: [100, 250],
                 layoutAnimation: true,
-                friction: 0.6
+                friction: 0.5
             },
             itemStyle: {
                 borderColor: '#ffffff',
@@ -1057,33 +1041,6 @@ function updateDashboardView(view) {
         setTimeout(() => {
             initializeSectorECharts(view);
         }, 500);
-
-        // Initialize Domain Network Graph for executive view
-        if (isExecutiveView) {
-            setTimeout(() => {
-                // Ensure ECharts is loaded and domain chart element is visible
-                const domainChartEl = document.getElementById('domainChart');
-                if (domainChartEl && !window.tcCharts?.domain) {
-                    // Wait for ECharts to be available
-                    const checkECharts = setInterval(() => {
-                        if (window.echarts && domainChartEl) {
-                            clearInterval(checkECharts);
-                            initializeDomainNetworkGraph();
-                        }
-                    }, 100);
-                    // Timeout after 5 seconds
-                    setTimeout(() => clearInterval(checkECharts), 5000);
-                } else if (domainChartEl && window.tcCharts?.domain) {
-                    // Chart already exists, just resize it
-                    try {
-                        window.tcCharts.domain.resize();
-                    } catch (e) {
-                        console.warn('Failed to resize domain chart, reinitializing:', e);
-                        initializeDomainNetworkGraph();
-                    }
-                }
-            }, 600);
-        }
 
         if (window.tcData && window.tcState) {
             const v = window.tcState.view;
@@ -2217,117 +2174,6 @@ applyRolePermissions = function(role){
     }
 }
 
-// Initialize preview chart in login modal
-function initializePreviewChart() {
-    const canvas = document.getElementById('previewChart');
-    if (!canvas || !window.Chart) {
-        console.warn('Preview chart canvas or Chart.js not available');
-        return;
-    }
-
-    // Destroy existing chart instance if it exists
-    if (window.previewChartInstance) {
-        window.previewChartInstance.destroy();
-        window.previewChartInstance = null;
-    }
-
-    const ctx = canvas.getContext('2d');
-    window.previewChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-            datasets: [{
-                label: 'Live KPI',
-                data: [85, 88, 92, 89, 94, 96, 95],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointHoverRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 8,
-                    titleFont: { size: 11 },
-                    bodyFont: { size: 10 }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    min: 80,
-                    max: 100,
-                    display: false,
-                    grid: {
-                        display: false
-                    }
-                },
-                x: {
-                    display: false,
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            elements: {
-                point: {
-                    radius: 2,
-                    hoverRadius: 3
-                }
-            }
-        }
-    });
-}
-
-// Initialize preview video in login modal
-function initializePreviewVideo() {
-    const video = document.getElementById('previewVideo');
-    if (!video) {
-        console.warn('Preview video element not found');
-        return;
-    }
-
-    // Set video source - use a real-time data flow video
-    const videoSource = '/videos/Realtime_data_flow_202508200300_dtvgx.mp4';
-    video.src = videoSource;
-    video.load();
-
-    // Handle video errors gracefully
-    video.addEventListener('error', (e) => {
-        console.warn('Preview video failed to load, trying fallback:', e);
-        // Try fallback video
-        const fallbackSource = '/videos/Dynamic_City_Map_Video_Ready.mp4';
-        if (video.src !== fallbackSource) {
-            video.src = fallbackSource;
-            video.load();
-        }
-    });
-
-    // Ensure video plays when it can
-    video.addEventListener('loadeddata', () => {
-        video.play().catch(err => {
-            console.warn('Video autoplay prevented:', err);
-        });
-    });
-
-    // Restart video when it ends (for loop)
-    video.addEventListener('ended', () => {
-        video.currentTime = 0;
-        video.play().catch(() => {});
-    });
-}
-
 // Simple role-based auth (front-end simulated)
 function initializeAuth() {
     const openBtn = document.getElementById('openAuthModal');
@@ -2336,30 +2182,9 @@ function initializeAuth() {
     const cancelBtn = document.getElementById('cancelAuth');
     const form = document.getElementById('authForm');
 
-    function close() { 
-        modal.classList.add('hidden');
-        // Pause video when modal closes to save resources
-        const previewVideo = document.getElementById('previewVideo');
-        if (previewVideo) {
-            previewVideo.pause();
-        }
-    }
+    function close() { modal.classList.add('hidden'); }
 
-    function open() {
-        modal.classList.remove('hidden');
-        // Initialize preview when modal opens
-        setTimeout(() => {
-            initializePreviewChart();
-            initializePreviewVideo();
-        }, 100);
-    }
-
-    if (openBtn && modal) {
-        openBtn.addEventListener('click', (e) => { 
-            e.preventDefault(); 
-            open();
-        });
-    }
+    if (openBtn && modal) openBtn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.remove('hidden'); });
     if (closeBtn) closeBtn.addEventListener('click', close);
     if (cancelBtn) cancelBtn.addEventListener('click', close);
     if (form) {
@@ -2376,12 +2201,6 @@ function initializeAuth() {
     // Apply saved role on load
     const saved = localStorage.getItem('tc_role');
     if (saved) applyRolePermissions(saved);
-
-    // Initialize preview on page load if modal is already visible (shouldn't happen normally)
-    if (modal && !modal.classList.contains('hidden')) {
-        initializePreviewChart();
-        initializePreviewVideo();
-    }
 }
 
 function applyRolePermissions(role) {

@@ -1003,20 +1003,6 @@ body.dashboard-view {
   max-height: 350px !important;
 }
 
-/* Domain Network Graph - Special sizing for better visibility */
-.domain-network-card.unified {
-  grid-column: span 12 !important;
-  min-height: 550px !important;
-  max-height: 650px !important;
-}
-
-.domain-network-card.unified .echarts-container {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 500px !important;
-  max-height: 600px !important;
-}
-
 /* ECharts specific */
 .echarts-container.unified {
   width: 100%;

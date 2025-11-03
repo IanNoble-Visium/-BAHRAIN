@@ -1003,6 +1003,24 @@ function updateDashboardView(view) {
                 domainNetworkGraphCard.style.display = isExecutiveView ? 'block' : 'none';
             }
 
+            // Hide/show Bahrain Map based on view (Executive only)
+            const bahrainMapCard = document.getElementById('bahrainMapCard');
+            if (bahrainMapCard) {
+                bahrainMapCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+
+            // Hide/show Live Feed based on view (Executive only)
+            const liveFeedCard = document.getElementById('liveFeedCard');
+            if (liveFeedCard) {
+                liveFeedCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+
+            // Hide/show Recent Alerts based on view (Executive only)
+            const recentAlertsCard = document.getElementById('recentAlertsCard');
+            if (recentAlertsCard) {
+                recentAlertsCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+
             showView(standardDashboard, 'grid');
 
             // Add staggered fade-in effect for cards (but skip hidden cards)
