@@ -890,6 +890,8 @@ body.dashboard-view {
   flex: 1;
   position: relative;
   min-height: 250px;
+  max-height: 350px;
+  height: 300px;
 }
 
 .chart-container.unified.loading::before {
@@ -976,7 +978,8 @@ body.dashboard-view {
    ============================================ */
 .chart-container.unified {
   width: 100%;
-  height: 100%;
+  height: 300px;
+  max-height: 350px;
   min-height: 250px;
   position: relative;
 }
@@ -984,13 +987,20 @@ body.dashboard-view {
 .chart-card.unified {
   grid-column: span 6;
   min-height: 380px;
+  max-height: 450px;
 }
 
-.chart-card.unified canvas,
+.chart-card.unified canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 300px !important;
+}
+
 .chart-card.unified .echarts-container {
   width: 100% !important;
-  height: calc(100% - 40px) !important;
+  height: 100% !important;
   min-height: 280px !important;
+  max-height: 350px !important;
 }
 
 /* ECharts specific */
