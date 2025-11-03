@@ -423,14 +423,20 @@ function setupClickHandlers() {
 // Fly camera to alert
 export function flyToAlert(entity) {
   if (!cesiumViewer || !entity) return;
-  
+
   const position = entity.position.getValue(cesiumViewer.clock.currentTime);
-  
+
+  // Convert position to cartographic to get lat/lon
+  const cartographic = Cesium.Cartographic.fromCartesian(position);
+  const lon = Cesium.Math.toDegrees(cartographic.longitude);
+  const lat = Cesium.Math.toDegrees(cartographic.latitude);
+
+  // Fly to position with good viewing angle and distance
   cesiumViewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromCartesian3(position, new Cesium.Cartesian3(0, 0, 5000)),
+    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 2500), // 2500m altitude for good view
     orientation: {
       heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-45),
+      pitch: Cesium.Math.toRadians(-45), // 45° tilt for oblique view
       roll: 0.0
     },
     duration: 1.5

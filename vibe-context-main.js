@@ -16,6 +16,29 @@
         return;
       }
 
+      // Check if required modules are loaded
+      if (!window.VibeContextStorage) {
+        console.error('VibeContextStorage not loaded. Please check script loading.');
+        this.container.innerHTML = '<div style="padding: 40px; text-align: center;"><h3>⚠️ Scripts Loading</h3><p>Please wait for all scripts to load...</p></div>';
+        // Retry after a delay
+        setTimeout(() => this.init(view), 1000);
+        return;
+      }
+
+      if (!window.VibeContextMarketplace && view === 'marketplace') {
+        console.error('VibeContextMarketplace not loaded. Please check script loading.');
+        this.container.innerHTML = '<div style="padding: 40px; text-align: center;"><h3>⚠️ Scripts Loading</h3><p>Please wait for all scripts to load...</p></div>';
+        setTimeout(() => this.init(view), 1000);
+        return;
+      }
+
+      if (!window.VibeContextWizard && view === 'wizard') {
+        console.error('VibeContextWizard not loaded. Please check script loading.');
+        this.container.innerHTML = '<div style="padding: 40px; text-align: center;"><h3>⚠️ Scripts Loading</h3><p>Please wait for all scripts to load...</p></div>';
+        setTimeout(() => this.init(view), 1000);
+        return;
+      }
+
       this.currentView = view;
       this.showView(view);
     },

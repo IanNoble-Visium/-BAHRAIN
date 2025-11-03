@@ -342,6 +342,17 @@
   <script>
     // Initialize Vue app for AI Agents Dashboard
     function initializeVueApp() {
+      // Check if Vue and AIAgentDashboard are available
+      if (typeof Vue === 'undefined') {
+        console.warn('Vue.js not loaded, skipping AI Agents initialization');
+        return;
+      }
+
+      if (typeof AIAgentDashboard === 'undefined') {
+        console.warn('AIAgentDashboard component not loaded, skipping initialization');
+        return;
+      }
+
       const { createApp } = Vue;
 
       const app = createApp({
@@ -361,7 +372,7 @@
     // Initialize Vue app after DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
       // Delay initialization to ensure all components are loaded
-      setTimeout(initializeVueApp, 100);
+      setTimeout(initializeVueApp, 500);
     });
   </script>
 

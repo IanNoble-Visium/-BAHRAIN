@@ -33,7 +33,10 @@ export default defineConfig({
     fs: {
       strict: false
     },
-    middlewareMode: false
+    middlewareMode: false,
+    watch: {
+      usePolling: false
+    }
   },
   preview: {
     port: 4173
