@@ -221,6 +221,14 @@ document.addEventListener('DOMContentLoaded', function() {
             window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
             // Ensure standard dashboard is visible on load
             updateDashboardView(window.tcState.view);
+
+            // Initialize Domain Network Graph AFTER view is set (Executive Dashboard only)
+            if (window.tcState.view === 'executive') {
+                setTimeout(() => {
+                    console.log('🔍 Initializing Domain Network Graph after view update...');
+                    initializeDomainNetworkGraph();
+                }, 300);
+            }
         }
     }, 100);
 });
@@ -559,31 +567,38 @@ function initializeCharts() {
         });
     }
 
-    // Domain Network Graph (ECharts 3D Graph)
-    initializeDomainNetworkGraph();
+    // Domain Network Graph (ECharts Sankey) - initialized separately after view is set
+    // See DOMContentLoaded event handler for initialization
 }
 
 // Initialize Domain Network Graph with ECharts
 function initializeDomainNetworkGraph() {
+    console.log('🔧 initializeDomainNetworkGraph() called');
+
     const domainChartEl = document.getElementById('domainChart');
     if (!domainChartEl) {
-        console.warn('Domain Network Graph: element not found');
+        console.error('❌ Smart City Data Flow: #domainChart element not found in DOM');
         return;
     }
+    console.log('✅ Found #domainChart element');
+
     if (!window.echarts) {
-        console.warn('Domain Network Graph: ECharts library not loaded');
+        console.error('❌ Smart City Data Flow: ECharts library not loaded');
         return;
     }
+    console.log('✅ ECharts library is loaded');
 
     // Check if element is visible
     const isVisible = domainChartEl.offsetWidth > 0 && domainChartEl.offsetHeight > 0;
+    console.log('📏 Element dimensions:', domainChartEl.offsetWidth, 'x', domainChartEl.offsetHeight, '| Visible:', isVisible);
+
     if (!isVisible) {
-        console.warn('Domain Network Graph: element not visible, retrying...');
+        console.warn('⚠️ Smart City Data Flow: element not visible, retrying in 200ms...');
         setTimeout(() => initializeDomainNetworkGraph(), 200);
         return;
     }
 
-    console.log('✅ Initializing Domain Network Graph, dimensions:', domainChartEl.offsetWidth, 'x', domainChartEl.offsetHeight);
+    console.log('✅ Initializing Smart City Data Flow Sankey, dimensions:', domainChartEl.offsetWidth, 'x', domainChartEl.offsetHeight);
 
     // Destroy existing chart instance if it exists
     if (window.tcCharts?.domain) {
@@ -597,174 +612,241 @@ function initializeDomainNetworkGraph() {
 
     const domainChart = window.echarts.init(domainChartEl);
 
-    // Generate network graph data with bold, high-contrast colors
-    const categories = [
-        { name: 'Core Infrastructure', itemStyle: { color: '#dc2626' } },      // Bold Red
-        { name: 'Security Systems', itemStyle: { color: '#ea580c' } },         // Bold Orange
-        { name: 'IoT Devices', itemStyle: { color: '#16a34a' } },              // Bold Green
-        { name: 'Data Centers', itemStyle: { color: '#2563eb' } },             // Bold Blue
-        { name: 'Edge Nodes', itemStyle: { color: '#9333ea' } }                // Bold Purple
+    // Sankey diagram showing data flow across Bahrain's Smart City systems
+    // Data sources (left side)
+    const dataSources = [
+        'IoT Sensors',
+        'Traffic Cameras',
+        'Environmental Monitors',
+        'Health Systems',
+        'Energy Grid',
+        'Water Network',
+        'Security Systems'
     ];
 
-    // Reduced node set with larger sizes for better visibility
+    // Processing layers (middle)
+    const processingLayers = [
+        'Edge Computing',
+        'Data Aggregation',
+        'AI Analytics',
+        'Real-time Processing'
+    ];
+
+    // Outputs/Services (right side)
+    const outputs = [
+        'Traffic Management',
+        'Environmental Control',
+        'Public Health',
+        'Energy Optimization',
+        'Water Management',
+        'Security Operations',
+        'Citizen Services'
+    ];
+
+    // Create nodes for Sankey
     const nodes = [
-        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 80 },
-        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 65 },
-        { id: '2', name: 'Firewall', value: 75, category: 1, symbolSize: 55 },
-        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 60 },
-        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 55 },
-        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 70 },
-        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 68 },
-        { id: '7', name: 'Edge Server', value: 60, category: 4, symbolSize: 52 },
-        { id: '8', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 62 },
-        { id: '9', name: 'API Gateway', value: 68, category: 0, symbolSize: 58 },
-        { id: '10', name: 'Load Balancer', value: 77, category: 0, symbolSize: 60 }
+        ...dataSources.map(name => ({ name })),
+        ...processingLayers.map(name => ({ name })),
+        ...outputs.map(name => ({ name }))
     ];
 
-    // Simplified links matching reduced node set
+    // Create links showing data flow with realistic volumes
     const links = [
-        { source: '0', target: '1', value: 10 },
-        { source: '0', target: '5', value: 15 },
-        { source: '0', target: '6', value: 14 },
-        { source: '0', target: '9', value: 12 },
-        { source: '0', target: '10', value: 13 },
-        { source: '1', target: '2', value: 8 },
-        { source: '1', target: '3', value: 7 },
-        { source: '3', target: '4', value: 6 },
-        { source: '5', target: '8', value: 9 },
-        { source: '6', target: '8', value: 9 },
-        { source: '7', target: '0', value: 4 },
-        { source: '9', target: '10', value: 6 },
-        { source: '8', target: '9', value: 7 }
+        // IoT Sensors to processing
+        { source: 'IoT Sensors', target: 'Edge Computing', value: 850 },
+        { source: 'IoT Sensors', target: 'Data Aggregation', value: 650 },
+
+        // Traffic Cameras to processing
+        { source: 'Traffic Cameras', target: 'Edge Computing', value: 720 },
+        { source: 'Traffic Cameras', target: 'AI Analytics', value: 580 },
+
+        // Environmental Monitors to processing
+        { source: 'Environmental Monitors', target: 'Data Aggregation', value: 450 },
+        { source: 'Environmental Monitors', target: 'Real-time Processing', value: 380 },
+
+        // Health Systems to processing
+        { source: 'Health Systems', target: 'Data Aggregation', value: 520 },
+        { source: 'Health Systems', target: 'AI Analytics', value: 420 },
+
+        // Energy Grid to processing
+        { source: 'Energy Grid', target: 'Real-time Processing', value: 680 },
+        { source: 'Energy Grid', target: 'AI Analytics', value: 490 },
+
+        // Water Network to processing
+        { source: 'Water Network', target: 'Data Aggregation', value: 410 },
+        { source: 'Water Network', target: 'Real-time Processing', value: 350 },
+
+        // Security Systems to processing
+        { source: 'Security Systems', target: 'Edge Computing', value: 620 },
+        { source: 'Security Systems', target: 'AI Analytics', value: 540 },
+
+        // Processing to outputs
+        { source: 'Edge Computing', target: 'Traffic Management', value: 780 },
+        { source: 'Edge Computing', target: 'Security Operations', value: 620 },
+        { source: 'Edge Computing', target: 'Citizen Services', value: 390 },
+
+        { source: 'Data Aggregation', target: 'Environmental Control', value: 520 },
+        { source: 'Data Aggregation', target: 'Water Management', value: 480 },
+        { source: 'Data Aggregation', target: 'Public Health', value: 430 },
+
+        { source: 'AI Analytics', target: 'Traffic Management', value: 650 },
+        { source: 'AI Analytics', target: 'Energy Optimization', value: 580 },
+        { source: 'AI Analytics', target: 'Public Health', value: 490 },
+        { source: 'AI Analytics', target: 'Security Operations', value: 420 },
+
+        { source: 'Real-time Processing', target: 'Energy Optimization', value: 590 },
+        { source: 'Real-time Processing', target: 'Water Management', value: 380 },
+        { source: 'Real-time Processing', target: 'Environmental Control', value: 440 }
     ];
 
     const option = {
         backgroundColor: 'transparent',
+        title: {
+            text: 'Bahrain Smart City Data Flow',
+            subtext: 'Real-time data processing across all sectors',
+            left: 'center',
+            top: 10,
+            textStyle: {
+                color: '#111827',
+                fontSize: 22,
+                fontWeight: '700'
+            },
+            subtextStyle: {
+                color: '#6b7280',
+                fontSize: 14
+            }
+        },
         tooltip: {
             trigger: 'item',
             backgroundColor: 'rgba(255, 255, 255, 0.98)',
-            borderColor: '#2563eb',
-            borderWidth: 3,
+            borderColor: '#ce1126',
+            borderWidth: 2,
             textStyle: {
                 color: '#111827',
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: '500'
             },
             formatter: function(params) {
-                if (params.dataType === 'node') {
-                    return `<strong style="font-size: 16px; color: #111827; font-weight: 700;">${params.data.name}</strong><br/>
-                            <span style="color: #4b5563; font-size: 14px;">Category:</span> <strong style="font-size: 14px;">${categories[params.data.category].name}</strong><br/>
-                            <span style="color: #4b5563; font-size: 14px;">Value:</span> <strong style="font-size: 14px;">${params.data.value}</strong><br/>
-                            <span style="color: #4b5563; font-size: 14px;">Connections:</span> <strong style="font-size: 14px;">${links.filter(l => l.source === params.data.id || l.target === params.data.id).length}</strong>`;
+                if (params.dataType === 'edge') {
+                    return `<strong style="font-size: 16px; color: #ce1126;">${params.data.source}</strong><br/>
+                            <div style="text-align: center; margin: 8px 0;">↓</div>
+                            <strong style="font-size: 16px; color: #ce1126;">${params.data.target}</strong><br/>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                                <span style="color: #6b7280;">Data Volume:</span> <strong style="color: #111827;">${params.data.value.toLocaleString()} GB/day</strong>
+                            </div>`;
                 } else {
-                    const sourceName = nodes.find(n => n.id === params.data.source)?.name || params.data.source;
-                    const targetName = nodes.find(n => n.id === params.data.target)?.name || params.data.target;
-                    return `<strong style="font-size: 15px; font-weight: 600;">${sourceName}</strong> → <strong style="font-weight: 600;">${targetName}</strong><br/>
-                            <span style="color: #4b5563; font-size: 14px;">Connection Strength:</span> <strong style="font-size: 14px;">${params.data.value}</strong>`;
+                    return `<strong style="font-size: 16px; color: #ce1126;">${params.data.name}</strong><br/>
+                            <span style="color: #6b7280; font-size: 13px;">Click to highlight connections</span>`;
                 }
             }
         },
-        legend: [{
-            data: categories.map(c => c.name),
-            orient: 'horizontal',
-            left: 'center',
-            top: 10,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderColor: '#d1d5db',
-            borderWidth: 2,
-            borderRadius: 8,
-            padding: [10, 15],
-            textStyle: {
-                color: '#111827',
-                fontSize: 13,
-                fontWeight: '600'
-            },
-            itemWidth: 18,
-            itemHeight: 18,
-            itemGap: 10
-        }],
-        animationDuration: 1500,
-        animationEasingUpdate: 'quinticInOut',
         series: [{
-            type: 'graph',
-            layout: 'force',
+            type: 'sankey',
             data: nodes,
             links: links,
-            categories: categories,
-            roam: true,
-            label: {
-                show: true,
-                position: 'right',
-                formatter: '{b}',
-                fontSize: 14,
-                fontWeight: '700',
-                color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                padding: [4, 8],
-                borderRadius: 4,
-                borderColor: '#9ca3af',
-                borderWidth: 1.5,
-                shadowBlur: 4,
-                shadowColor: 'rgba(0, 0, 0, 0.2)',
-                shadowOffsetX: 0,
-                shadowOffsetY: 1
-            },
-            labelLayout: {
-                hideOverlap: false,
-                moveOverlap: 'shiftY'
-            },
-            scaleLimit: {
-                min: 0.5,
-                max: 3
+            emphasis: {
+                focus: 'adjacency'
             },
             lineStyle: {
-                color: 'source',
-                curveness: 0.3,
-                opacity: 0.7,
-                width: 3.5
+                color: 'gradient',
+                curveness: 0.5,
+                opacity: 0.3
             },
-            emphasis: {
-                focus: 'adjacency',
-                lineStyle: {
-                    width: 6,
-                    opacity: 1
-                },
-                label: {
-                    fontSize: 18,
-                    fontWeight: '800',
-                    backgroundColor: 'rgba(255, 255, 255, 1)',
-                    borderWidth: 3,
-                    borderColor: '#2563eb',
-                    shadowBlur: 10,
-                    shadowColor: 'rgba(37, 99, 235, 0.4)'
-                }
-            },
-            force: {
-                repulsion: 800,
-                gravity: 0.03,
-                edgeLength: [150, 300],
-                layoutAnimation: true,
-                friction: 0.6
+            label: {
+                color: '#111827',
+                fontSize: 13,
+                fontWeight: '600',
+                position: 'right',
+                formatter: '{b}'
             },
             itemStyle: {
-                borderColor: '#ffffff',
-                borderWidth: 4,
-                shadowBlur: 15,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-        }]
+                color: function(params) {
+                    // Color nodes based on their position in the flow
+                    const name = params.data.name;
+                    if (dataSources.includes(name)) {
+                        // Data sources - shades of red (Bahrain flag color)
+                        const colors = ['#ce1126', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca', '#fee2e2'];
+                        return colors[dataSources.indexOf(name) % colors.length];
+                    } else if (processingLayers.includes(name)) {
+                        // Processing - shades of blue
+                        const colors = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa'];
+                        return colors[processingLayers.indexOf(name) % colors.length];
+                    } else {
+                        // Outputs - shades of green
+                        const colors = ['#15803d', '#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#dcfce7'];
+                        return colors[outputs.indexOf(name) % colors.length];
+                    }
+                },
+                borderColor: '#fff',
+                borderWidth: 2,
+                shadowBlur: 8,
+                shadowColor: 'rgba(0, 0, 0, 0.2)'
+            },
+            levels: [
+                {
+                    depth: 0,
+                    itemStyle: {
+                        color: '#ce1126',
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    lineStyle: {
+                        color: 'source',
+                        opacity: 0.4
+                    }
+                },
+                {
+                    depth: 1,
+                    itemStyle: {
+                        color: '#2563eb',
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    lineStyle: {
+                        color: 'source',
+                        opacity: 0.4
+                    }
+                },
+                {
+                    depth: 2,
+                    itemStyle: {
+                        color: '#16a34a',
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    lineStyle: {
+                        color: 'target',
+                        opacity: 0.4
+                    }
+                }
+            ],
+            left: '5%',
+            right: '5%',
+            top: '15%',
+            bottom: '5%',
+            nodeWidth: 25,
+            nodeGap: 12,
+            layoutIterations: 32,
+            orient: 'horizontal'
+        }],
+        animationDuration: 2000,
+        animationEasing: 'cubicOut'
     };
 
     domainChart.setOption(option);
+    console.log('✅ Sankey diagram option set successfully');
 
     // Store instance for cleanup
     window.tcCharts = window.tcCharts || {};
     window.tcCharts.domain = domainChart;
+    console.log('✅ Domain chart stored in window.tcCharts.domain');
 
     // Handle resize
     window.addEventListener('resize', () => {
         domainChart.resize();
     });
+
+    console.log('🎉 Smart City Data Flow Sankey diagram initialized successfully!');
 }
 
 // Demo dashboard controls
@@ -1000,7 +1082,7 @@ function updateDashboardView(view) {
             // Hide/show Domain Network Graph based on view
             const domainNetworkGraphCard = document.getElementById('domainNetworkGraphCard');
             if (domainNetworkGraphCard) {
-                domainNetworkGraphCard.style.display = isExecutiveView ? 'block' : 'none';
+                domainNetworkGraphCard.style.display = isExecutiveView ? 'flex' : 'none';
             }
 
             // Hide/show Bahrain Map based on view (Executive only)
@@ -1040,8 +1122,46 @@ function updateDashboardView(view) {
                     }, index * 50);
                 });
             }, 400);
+
+            // Initialize Domain Network Graph for executive view
+            if (isExecutiveView) {
+                console.log('🔍 Executive view detected, initializing Domain Network Graph...');
+                setTimeout(() => {
+                    // Ensure ECharts is loaded and domain chart element is visible
+                    const domainChartEl = document.getElementById('domainChart');
+                    console.log('🔍 Domain chart element:', domainChartEl ? 'FOUND' : 'NOT FOUND');
+                    console.log('🔍 Existing chart instance:', window.tcCharts?.domain ? 'EXISTS' : 'NONE');
+
+                    if (domainChartEl && !window.tcCharts?.domain) {
+                        console.log('🔍 No existing chart, creating new one...');
+                        // Wait for ECharts to be available
+                        const checkECharts = setInterval(() => {
+                            if (window.echarts && domainChartEl) {
+                                clearInterval(checkECharts);
+                                console.log('✅ ECharts loaded, calling initializeDomainNetworkGraph()');
+                                initializeDomainNetworkGraph();
+                            }
+                        }, 100);
+                        // Timeout after 5 seconds
+                        setTimeout(() => {
+                            clearInterval(checkECharts);
+                            console.warn('⚠️ Timeout waiting for ECharts');
+                        }, 5000);
+                    } else if (domainChartEl && window.tcCharts?.domain) {
+                        // Chart already exists, just resize it
+                        console.log('✅ Chart exists, resizing...');
+                        try {
+                            window.tcCharts.domain.resize();
+                            console.log('✅ Chart resized successfully');
+                        } catch (e) {
+                            console.warn('⚠️ Failed to resize domain chart, reinitializing:', e);
+                            initializeDomainNetworkGraph();
+                        }
+                    }
+                }, 600);
+            }
         }
-        
+
         // Make sure demo-container is visible for standard views
         if (demoContainer) {
             demoContainer.style.display = 'block';
@@ -1061,47 +1181,20 @@ function updateDashboardView(view) {
         const securityChartCard = document.getElementById('securityChart')?.closest('.dashboard-card');
         const trafficChartCard = document.getElementById('trafficChart')?.closest('.dashboard-card');
 
-        const isExecutiveView = view === 'executive';
+        const isExecutiveView2 = view === 'executive';
 
         // Show Chart.js charts only on Executive Dashboard
         if (securityChartCard) {
-            securityChartCard.style.display = isExecutiveView ? 'block' : 'none';
+            securityChartCard.style.display = isExecutiveView2 ? 'flex' : 'none';
         }
         if (trafficChartCard) {
-            trafficChartCard.style.display = isExecutiveView ? 'block' : 'none';
+            trafficChartCard.style.display = isExecutiveView2 ? 'flex' : 'none';
         }
 
         // Initialize sector-specific ECharts visualizations
         setTimeout(() => {
             initializeSectorECharts(view);
         }, 500);
-
-        // Initialize Domain Network Graph for executive view
-        if (isExecutiveView) {
-            setTimeout(() => {
-                // Ensure ECharts is loaded and domain chart element is visible
-                const domainChartEl = document.getElementById('domainChart');
-                if (domainChartEl && !window.tcCharts?.domain) {
-                    // Wait for ECharts to be available
-                    const checkECharts = setInterval(() => {
-                        if (window.echarts && domainChartEl) {
-                            clearInterval(checkECharts);
-                            initializeDomainNetworkGraph();
-                        }
-                    }, 100);
-                    // Timeout after 5 seconds
-                    setTimeout(() => clearInterval(checkECharts), 5000);
-                } else if (domainChartEl && window.tcCharts?.domain) {
-                    // Chart already exists, just resize it
-                    try {
-                        window.tcCharts.domain.resize();
-                    } catch (e) {
-                        console.warn('Failed to resize domain chart, reinitializing:', e);
-                        initializeDomainNetworkGraph();
-                    }
-                }
-            }, 600);
-        }
 
         if (window.tcData && window.tcState) {
             const v = window.tcState.view;

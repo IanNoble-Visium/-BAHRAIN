@@ -96,8 +96,9 @@ body.dashboard-view {
 body.dashboard-view {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Smooth page transitions */

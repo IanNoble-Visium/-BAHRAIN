@@ -2174,6 +2174,105 @@ applyRolePermissions = function(role){
     }
 }
 
+// Initialize preview chart in login modal
+function initializePreviewChart() {
+    const canvas = document.getElementById('previewChart');
+    if (!canvas || !window.Chart) {
+        console.warn('Preview chart canvas or Chart.js not available');
+        return;
+    }
+
+    // Destroy existing chart instance if it exists
+    if (window.previewChartInstance) {
+        window.previewChartInstance.destroy();
+        window.previewChartInstance = null;
+    }
+
+    const ctx = canvas.getContext('2d');
+    window.previewChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+            datasets: [{
+                label: 'Live KPI',
+                data: [85, 88, 92, 89, 94, 96, 93],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: 80,
+                    max: 100,
+                    ticks: { display: false },
+                    grid: { display: false }
+                },
+                x: {
+                    ticks: { display: false },
+                    grid: { display: false }
+                }
+            },
+            animation: {
+                duration: 1000
+            }
+        }
+    });
+
+    // Animate the chart data
+    setInterval(() => {
+        if (window.previewChartInstance) {
+            const data = window.previewChartInstance.data.datasets[0].data;
+            window.previewChartInstance.data.datasets[0].data = data.map(v =>
+                Math.max(80, Math.min(100, v + (Math.random() - 0.5) * 3))
+            );
+            window.previewChartInstance.update('none');
+        }
+    }, 2000);
+}
+
+// Initialize preview video in login modal
+function initializePreviewVideo() {
+    const video = document.getElementById('previewVideo');
+    if (!video) {
+        console.warn('Preview video element not found');
+        return;
+    }
+
+    // Set video source - use a real-time data flow video
+    const videoSource = '/videos/Realtime_data_flow_202508200300_dtvgx.mp4';
+    video.src = videoSource;
+    video.load();
+
+    // Handle video errors gracefully
+    video.addEventListener('error', (e) => {
+        console.warn('Preview video failed to load, trying fallback:', e);
+        // Try fallback video
+        const fallbackSource = '/videos/Dynamic_City_Map_Video_Ready.mp4';
+        if (video.src !== fallbackSource) {
+            video.src = fallbackSource;
+            video.load();
+        }
+    });
+
+    // Ensure video plays
+    video.play().catch(err => {
+        console.warn('Preview video autoplay prevented:', err);
+    });
+}
+
 // Simple role-based auth (front-end simulated)
 function initializeAuth() {
     const openBtn = document.getElementById('openAuthModal');
@@ -2184,7 +2283,16 @@ function initializeAuth() {
 
     function close() { modal.classList.add('hidden'); }
 
-    if (openBtn && modal) openBtn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.remove('hidden'); });
+    function open() {
+        modal.classList.remove('hidden');
+        // Initialize preview when modal opens
+        setTimeout(() => {
+            initializePreviewChart();
+            initializePreviewVideo();
+        }, 100);
+    }
+
+    if (openBtn && modal) openBtn.addEventListener('click', (e) => { e.preventDefault(); open(); });
     if (closeBtn) closeBtn.addEventListener('click', close);
     if (cancelBtn) cancelBtn.addEventListener('click', close);
     if (form) {
@@ -2201,6 +2309,12 @@ function initializeAuth() {
     // Apply saved role on load
     const saved = localStorage.getItem('tc_role');
     if (saved) applyRolePermissions(saved);
+
+    // Initialize preview on page load if modal is already visible (shouldn't happen normally)
+    if (modal && !modal.classList.contains('hidden')) {
+        initializePreviewChart();
+        initializePreviewVideo();
+    }
 }
 
 function applyRolePermissions(role) {
