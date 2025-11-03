@@ -1,14 +1,14 @@
 // Bahrain Alerts Data for 3D Map Visualization
 
 export const sectors = [
-  { id: 'all', name: 'All Sectors', icon: '🌐' },
-  { id: 'cybersecurity', name: 'Cybersecurity', icon: '🛡️' },
-  { id: 'traffic', name: 'Traffic', icon: '🚦' },
-  { id: 'environment', name: 'Environment', icon: '🌬️' },
-  { id: 'water', name: 'Water Management', icon: '💧' },
-  { id: 'energy', name: 'Energy & Renewables', icon: '⚡' },
-  { id: 'infrastructure', name: 'Infrastructure', icon: '🏗️' },
-  { id: 'health', name: 'Health Monitoring', icon: '🏥' }
+  { id: 'all', name: 'All Sectors', icon: '🌐', color: '#6b7280' },
+  { id: 'cybersecurity', name: 'Cybersecurity', icon: '🛡️', color: '#f59e0b' },
+  { id: 'traffic', name: 'Traffic', icon: '🚦', color: '#ef4444' },
+  { id: 'environment', name: 'Environment', icon: '🌬️', color: '#10b981' },
+  { id: 'water', name: 'Water Management', icon: '💧', color: '#3b82f6' },
+  { id: 'energy', name: 'Energy & Renewables', icon: '⚡', color: '#8b5cf6' },
+  { id: 'infrastructure', name: 'Infrastructure', icon: '🏗️', color: '#14b8a6' },
+  { id: 'health', name: 'Health Monitoring', icon: '🏥', color: '#ec4899' }
 ];
 
 // Severity colors mapping
