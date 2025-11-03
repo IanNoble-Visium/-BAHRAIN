@@ -558,6 +558,152 @@ function initializeCharts() {
             }
         });
     }
+
+    // Domain Network Graph (ECharts 3D Graph)
+    initializeDomainNetworkGraph();
+}
+
+// Initialize Domain Network Graph with ECharts
+function initializeDomainNetworkGraph() {
+    const domainChartEl = document.getElementById('domainChart');
+    if (!domainChartEl || !window.echarts) return;
+
+    const domainChart = window.echarts.init(domainChartEl);
+
+    // Generate network graph data
+    const categories = [
+        { name: 'Core Infrastructure' },
+        { name: 'Security Systems' },
+        { name: 'IoT Devices' },
+        { name: 'Data Centers' },
+        { name: 'Edge Nodes' }
+    ];
+
+    const nodes = [
+        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 60 },
+        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 50 },
+        { id: '2', name: 'Firewall Cluster', value: 75, category: 1, symbolSize: 45 },
+        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 40 },
+        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 38 },
+        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 55 },
+        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 53 },
+        { id: '7', name: 'Edge Server 1', value: 60, category: 4, symbolSize: 35 },
+        { id: '8', name: 'Edge Server 2', value: 58, category: 4, symbolSize: 33 },
+        { id: '9', name: 'Edge Server 3', value: 56, category: 4, symbolSize: 32 },
+        { id: '10', name: 'Traffic Monitor', value: 72, category: 2, symbolSize: 42 },
+        { id: '11', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 48 },
+        { id: '12', name: 'API Gateway', value: 68, category: 0, symbolSize: 40 },
+        { id: '13', name: 'Load Balancer', value: 77, category: 0, symbolSize: 46 },
+        { id: '14', name: 'Backup System', value: 82, category: 3, symbolSize: 49 }
+    ];
+
+    const links = [
+        { source: '0', target: '1', value: 10 },
+        { source: '0', target: '5', value: 15 },
+        { source: '0', target: '6', value: 14 },
+        { source: '0', target: '12', value: 12 },
+        { source: '0', target: '13', value: 13 },
+        { source: '1', target: '2', value: 8 },
+        { source: '1', target: '3', value: 7 },
+        { source: '3', target: '4', value: 6 },
+        { source: '3', target: '10', value: 5 },
+        { source: '5', target: '11', value: 9 },
+        { source: '5', target: '14', value: 8 },
+        { source: '6', target: '11', value: 9 },
+        { source: '6', target: '14', value: 7 },
+        { source: '7', target: '0', value: 4 },
+        { source: '8', target: '0', value: 4 },
+        { source: '9', target: '0', value: 4 },
+        { source: '12', target: '13', value: 6 },
+        { source: '11', target: '12', value: 7 }
+    ];
+
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'item',
+            formatter: function(params) {
+                if (params.dataType === 'node') {
+                    return `<strong>${params.data.name}</strong><br/>Category: ${categories[params.data.category].name}<br/>Value: ${params.data.value}`;
+                } else {
+                    return `${params.data.source} → ${params.data.target}<br/>Strength: ${params.data.value}`;
+                }
+            }
+        },
+        legend: [{
+            data: categories.map(c => c.name),
+            orient: 'vertical',
+            left: 10,
+            top: 20,
+            textStyle: {
+                color: '#374151',
+                fontSize: 11
+            }
+        }],
+        animationDuration: 1500,
+        animationEasingUpdate: 'quinticInOut',
+        series: [{
+            type: 'graph',
+            layout: 'force',
+            data: nodes,
+            links: links,
+            categories: categories,
+            roam: true,
+            label: {
+                show: true,
+                position: 'right',
+                formatter: '{b}',
+                fontSize: 10,
+                color: '#1f2937'
+            },
+            labelLayout: {
+                hideOverlap: true
+            },
+            scaleLimit: {
+                min: 0.5,
+                max: 3
+            },
+            lineStyle: {
+                color: 'source',
+                curveness: 0.3,
+                opacity: 0.5
+            },
+            emphasis: {
+                focus: 'adjacency',
+                lineStyle: {
+                    width: 4,
+                    opacity: 0.9
+                },
+                label: {
+                    fontSize: 12,
+                    fontWeight: 'bold'
+                }
+            },
+            force: {
+                repulsion: 200,
+                gravity: 0.1,
+                edgeLength: [50, 150],
+                layoutAnimation: true
+            },
+            itemStyle: {
+                borderColor: '#fff',
+                borderWidth: 2,
+                shadowBlur: 10,
+                shadowColor: 'rgba(0, 0, 0, 0.3)'
+            }
+        }]
+    };
+
+    domainChart.setOption(option);
+
+    // Store instance for cleanup
+    window.tcCharts = window.tcCharts || {};
+    window.tcCharts.domain = domainChart;
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+        domainChart.resize();
+    });
 }
 
 // Demo dashboard controls
