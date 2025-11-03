@@ -1,7 +1,7 @@
 # TruContext Bahrain Interactive Smart City Demo
 
 ![Project Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Version](https://img.shields.io/badge/Version-2.0-blue)
+![Version](https://img.shields.io/badge/Version-2.1-blue)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
 ## 🏙️ Project Overview
@@ -32,6 +32,8 @@ The **TruContext Bahrain Interactive Smart City Demo** is a comprehensive web-ba
 - **⚡ Energy & Renewables**: Power grid monitoring and renewable energy tracking
 - **🏗️ Infrastructure Projects**: Construction and development progress
 - **🏥 Health Monitoring**: Healthcare system performance and public health metrics
+- **🤖 AI Agents**: Real-time monitoring and management of AI-powered agents
+- **✨ Vibe Context**: AI-assisted creation wizard for custom automations, agents, and dashboard components
 
 ### Interactive Components
 - **Real-time Data Simulation**: Dynamic KPI updates with contextual factors
@@ -42,8 +44,42 @@ The **TruContext Bahrain Interactive Smart City Demo** is a comprehensive web-ba
 - **Alert Management**: Real-time alert system with severity filtering
 - **Time Range Controls**: 24h, 7d, 30d data views
 - **Role-based Authentication**: Secure access with user role management
+- **Vibe Context Marketplace**: Browse and install pre-built automations and agents
+- **AI-Assisted Creation Wizard**: Build custom dashboard functionality without coding
 
 ## 🚀 Recent Updates & Fixes
+
+### ✨ Vibe Context Feature (v2.1) - NEW!
+A groundbreaking AI-assisted platform that allows users to create custom automations, agents, and dashboard functionality without coding. This innovative feature sets TruContext apart from competitors.
+
+**Key Features:**
+- 🎯 **Marketplace**: Browse 8+ pre-built automations and agents ready to install
+  - Real-time Threat Detection Agent
+  - Traffic Flow Optimizer
+  - Custom KPI Dashboard Builder
+  - Alert Automation Workflow
+  - Predictive Analytics Agent
+  - Smart Grid Monitor
+  - Health Crisis Predictor
+  - Infrastructure Health Checker
+
+- 🤖 **AI-Assisted Creation Wizard**: 5-step guided process
+  1. Type Selection (Automation, Agent, Visualization, Dashboard)
+  2. AI-Powered Suggestions with documentation context awareness
+  3. Configuration with type-specific options
+  4. Live Preview using ECharts
+  5. Deploy & Save with progress persistence
+
+- 💾 **LocalStorage Integration**: Save creations, workspace state, and installed items
+- 🎨 **Modern UI**: Glassmorphism effects, smooth animations, and responsive design
+- ⚡ **Performance**: Optimized loading, intelligent caching, and smooth transitions
+
+**Technical Highlights:**
+- Simulated AI intelligence with realistic thinking animations
+- Documentation-aware suggestions (reads from `/docs` directory)
+- Component-based architecture for easy extensibility
+- Error handling and graceful degradation
+- Production-ready with comprehensive error checking
 
 ### Layout Optimization (v2.0)
 - ✅ **Single Viewport Design**: Optimized for 1920x1080 screens without vertical scrolling
@@ -55,12 +91,15 @@ The **TruContext Bahrain Interactive Smart City Demo** is a comprehensive web-ba
 - ✅ **KPI Data Display**: Fixed "—" placeholder issue, now shows real data on load
 - ✅ **Documentation Links**: Corrected URL path from `publc/docs/` to `public/docs/`
 - ✅ **Responsive Design**: Enhanced mobile layout with single-column fallback
+- ✅ **Script Loading**: Added error handling for missing dependencies
+- ✅ **Vue Initialization**: Improved AI Agents dashboard initialization with dependency checks
 
 ### Visual Design Improvements
 - ✅ **Professional Styling**: Enhanced status indicators with visual dots
 - ✅ **Improved Typography**: Optimized font hierarchy and sizing
 - ✅ **Better Controls**: Styled demo controls with background and borders
 - ✅ **Trend Indicators**: Added color-coded positive/negative trend styling
+- ✅ **Vibe Context UI**: Modern design with celebration animations and loading states
 
 ## 🛠️ Installation & Setup
 
@@ -136,6 +175,20 @@ The **TruContext Bahrain Interactive Smart City Demo** is a comprehensive web-ba
 ├── main.js                 # Core application logic
 ├── styles.css              # Comprehensive styling
 ├── vercel.json             # Deployment configuration
+├── components/             # Vue.js components
+│   ├── AIAgentDashboard.js
+│   ├── AgentCard.js
+│   ├── KPICard.js
+│   └── Map3D.js
+├── vibe-context-*.js       # Vibe Context feature modules
+│   ├── vibe-context-storage.js
+│   ├── vibe-context-ai.js
+│   ├── vibe-context-marketplace.js
+│   ├── vibe-context-wizard.js
+│   ├── vibe-context-main.js
+│   └── vibe-context-styles.css
+├── ai-agents-*.js          # AI Agents dashboard modules
+├── echarts-*.js            # ECharts visualization utilities
 ├── public/
 │   ├── docs/               # Project documentation files
 │   ├── images/             # Logo and visual assets
@@ -151,6 +204,11 @@ The **TruContext Bahrain Interactive Smart City Demo** is a comprehensive web-ba
 - **Chart Initialization**: Chart.js setup and configuration
 - **Map Integration**: Leaflet map with Bahrain geography
 - **Network Visualization**: Cytoscape.js graph rendering
+- **`window.VibeContextStorage`**: LocalStorage wrapper for creations and workspace state
+- **`window.VibeContextAI`**: AI simulation engine with knowledge base and intelligent suggestions
+- **`window.VibeContextMarketplace`**: Marketplace grid with pre-built examples
+- **`window.VibeContextWizard`**: Multi-step creation wizard with AI assistance
+- **`window.VibeContextMain`**: Main controller for view switching
 
 ### CSS Organization
 - **Reset & Base**: Foundational styles and typography
@@ -188,10 +246,13 @@ The project includes `vercel.json` for seamless deployment:
 ## 🔮 Suggested Next Steps
 
 ### Feature Enhancements
+- **Vibe Context AI Integration**: Connect to OpenAI API for real AI-powered suggestions
 - **Real API Integration**: Connect to actual Bahrain city data sources
 - **Advanced Analytics**: Machine learning-powered insights
 - **Mobile App**: Native mobile application development
 - **Multi-language Support**: Arabic and English localization
+- **Vibe Context Sharing**: Export/import creations and share marketplace items
+- **Advanced Wizard Features**: Custom templates and workflow builder
 
 ### Performance Improvements
 - **Code Splitting**: Lazy load dashboard components
