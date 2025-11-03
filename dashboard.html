@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="dashboard-unified.css">
   <link rel="stylesheet" href="ai-agents-styles.css">
+  <link rel="stylesheet" href="vibe-context-styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -115,6 +116,10 @@
       <a href="#" class="sidebar-link unified" data-view="aiagents">
         <span class="sidebar-icon">🤖</span>
         <span class="sidebar-label">AI Agents</span>
+      </a>
+      <a href="#" class="sidebar-link unified" data-view="vibectx">
+        <span class="sidebar-icon">✨</span>
+        <span class="sidebar-label">Vibe Context</span>
       </a>
     </nav>
   </aside>
@@ -291,6 +296,11 @@
       <div id="aiAgentsApp" class="ai-agents-view unified" style="display:none;">
         <!-- This gets mounted by ai-agents-dashboard.js -->
       </div>
+
+      <!-- Vibe Context View -->
+      <div id="vibeContextView" class="vibe-context-view unified" style="display:none;">
+        <!-- Vibe Context dashboard will be initialized here -->
+      </div>
     </div>
   </main>
 
@@ -320,6 +330,13 @@
   <!-- AI Agents Data and Dashboard -->
   <script src="./ai-agents-data.js"></script>
   <script src="./ai-agents-dashboard.js"></script>
+
+  <!-- Vibe Context Feature -->
+  <script src="./vibe-context-storage.js"></script>
+  <script src="./vibe-context-ai.js"></script>
+  <script src="./vibe-context-marketplace.js"></script>
+  <script src="./vibe-context-wizard.js"></script>
+  <script src="./vibe-context-main.js"></script>
 
   <!-- Vue App Initialization -->
   <script>

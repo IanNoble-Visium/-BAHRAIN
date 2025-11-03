@@ -815,6 +815,7 @@ function updateDashboardView(view) {
     let standardDashboard = document.getElementById('standardDashboard');
     let map3DView = document.getElementById('map3DView');
     let aiAgentsApp = document.getElementById('aiAgentsApp');
+    let vibeContextView = document.getElementById('vibeContextView');
     const demoContainer = document.querySelector('.demo-container.compact');
     const container = document.querySelector('.demo .container');
 
@@ -901,6 +902,7 @@ function updateDashboardView(view) {
     hideView(standardDashboard);
     hideView(map3DView);
     hideView(aiAgentsApp);
+    hideView(vibeContextView);
 
     console.log('🔍 DEBUG: Hidden all views with fade animation');
 
@@ -945,11 +947,24 @@ function updateDashboardView(view) {
                 setTimeout(() => initAIAgentsDashboard(), 400);
             }
         }
+    } else if (view === 'vibectx') {
+        // Show Vibe Context view
+        if (vibeContextView) {
+            showView(vibeContextView, 'block');
+            if (demoContainer) demoContainer.style.display = 'none';
+            if (typeof window.VibeContextMain !== 'undefined' && window.VibeContextMain.init) {
+                setTimeout(() => window.VibeContextMain.init('marketplace'), 400);
+            }
+        }
     } else {
         // Show standard dashboard for all other views
         if (standardDashboard) {
             // IMPORTANT: Set visibility of conditional cards BEFORE showing the view
             const isExecutiveView = view === 'executive';
+
+            console.log('🔍 DEBUG: KPI CARD VISIBILITY LOGIC RUNNING');
+            console.log('🔍 DEBUG: Current view:', view);
+            console.log('🔍 DEBUG: isExecutiveView:', isExecutiveView);
 
             // Hide/show KPI metric cards based on view
             const networkEntitiesCard = document.getElementById('networkEntitiesCard');
@@ -957,23 +972,36 @@ function updateDashboardView(view) {
             const threatLevelCard = document.getElementById('threatLevelCard');
             const systemHealthCard = document.getElementById('systemHealthCard');
 
+            console.log('🔍 DEBUG: Found KPI cards:', {
+                networkEntitiesCard: !!networkEntitiesCard,
+                activeRelationshipsCard: !!activeRelationshipsCard,
+                threatLevelCard: !!threatLevelCard,
+                systemHealthCard: !!systemHealthCard
+            });
+
             if (networkEntitiesCard) {
                 networkEntitiesCard.style.display = isExecutiveView ? 'block' : 'none';
+                console.log('🔍 DEBUG: networkEntitiesCard display set to:', networkEntitiesCard.style.display);
             }
             if (activeRelationshipsCard) {
                 activeRelationshipsCard.style.display = isExecutiveView ? 'block' : 'none';
+                console.log('🔍 DEBUG: activeRelationshipsCard display set to:', activeRelationshipsCard.style.display);
             }
             if (threatLevelCard) {
                 threatLevelCard.style.display = isExecutiveView ? 'block' : 'none';
+                console.log('🔍 DEBUG: threatLevelCard display set to:', threatLevelCard.style.display);
             }
             if (systemHealthCard) {
                 systemHealthCard.style.display = isExecutiveView ? 'block' : 'none';
+                console.log('🔍 DEBUG: systemHealthCard display set to:', systemHealthCard.style.display);
             }
 
             // Hide/show Domain Network Graph based on view
             const domainNetworkGraphCard = document.getElementById('domainNetworkGraphCard');
+            console.log('🔍 DEBUG: Found domainNetworkGraphCard:', !!domainNetworkGraphCard);
             if (domainNetworkGraphCard) {
                 domainNetworkGraphCard.style.display = isExecutiveView ? 'block' : 'none';
+                console.log('🔍 DEBUG: domainNetworkGraphCard display set to:', domainNetworkGraphCard.style.display);
             }
 
             showView(standardDashboard, 'grid');
