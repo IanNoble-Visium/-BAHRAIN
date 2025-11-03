@@ -39,6 +39,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/force-graph@1.45.1/dist/force-graph.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/countup.js@2.8.0/dist/countUp.umd.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -77,6 +79,7 @@
                 <source src="/videos/Nighttime_cityscape_with_202508060021_arch5.mp4" type="video/mp4">
             </video>
             <div class="hero-overlay"></div>
+            <div class="heatmap-effect"></div>
         </div>
         <div class="hero-content">
             <div class="container">
@@ -104,6 +107,22 @@
                     <div class="stat-item">
                         <div class="stat-number" data-target="12">0</div>
                         <div class="stat-label">Month Payback Period</div>
+                    </div>
+                </div>
+                <div class="stat-ticker">
+                    <div class="ticker-content">
+                        <div class="ticker-item active">
+                            <div class="ticker-value">$225M+</div>
+                            <div class="ticker-label">Annual Benefit</div>
+                        </div>
+                        <div class="ticker-item">
+                            <div class="ticker-value">$20–30M</div>
+                            <div class="ticker-label">Cybersecurity Savings</div>
+                        </div>
+                        <div class="ticker-item">
+                            <div class="ticker-value">$100–250M</div>
+                            <div class="ticker-label">Traffic Efficiency</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -514,20 +533,47 @@
 
     <!-- Auth Modal -->
     <div id="authModal" class="modal hidden" aria-hidden="true" role="dialog">
-        <div class="modal-content auth">
+        <div class="modal-content auth" data-theme="gray">
             <button id="closeAuth" class="modal-close" aria-label="Close">&times;</button>
-            <h3>Sign In</h3>
+            <div class="auth-header">
+                <h3>Access TruContext Dashboard</h3>
+                <p class="auth-subtitle">Real-time analytics powered by Neo4j</p>
+            </div>
+            <div class="preview-pane">
+                <div class="preview-left">
+                    <div class="preview-chart-container">
+                        <canvas id="previewChart"></canvas>
+                        <div class="chart-label">Live KPI Preview</div>
+                    </div>
+                </div>
+                <div class="preview-right">
+                    <video id="previewVideo" autoplay muted loop playsinline></video>
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        <span class="live-text">Live Data Feed</span>
+                    </div>
+                </div>
+            </div>
             <form id="authForm" class="auth-form">
-                <input type="email" id="authEmail" placeholder="Email" required>
-                <input type="password" id="authPassword" placeholder="Password" required>
-                <select id="authRole" required>
-                    <option value="viewer">Viewer</option>
-                    <option value="operator">Operator</option>
-                    <option value="admin">Admin</option>
-                </select>
+                <div class="form-group">
+                    <label for="authEmail">Email Address</label>
+                    <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="authRole">User Role</label>
+                    <select id="authRole" required>
+                        <option value="viewer" data-theme="gray">👁️ Viewer - Monitoring & Insights</option>
+                        <option value="operator" data-theme="green">⚙️ Operator - Active Management</option>
+                        <option value="admin" data-theme="blue">🔐 Admin - Full Control</option>
+                    </select>
+                </div>
                 <div class="actions">
                     <button type="button" id="cancelAuth" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Sign In</button>
+                    <button type="submit" class="btn-primary pulse-button" data-tagline="Unlock $225M+ in Annual Value">Sign In</button>
                 </div>
             </form>
         </div>

@@ -1,0 +1,29 @@
+{
+  "traffic": {
+    "transitOnTimeTarget": 0.9,
+    "parkingUtilTarget": 0.75,
+    "congestionHigh": 0.35
+  },
+  "environment": {
+    "aqiManamaTarget": 50,
+    "aqiMuharraqTarget": 50,
+    "dustForecastHigh": 0.5
+  },
+  "health": {
+    "icuOccHigh": 0.8,
+    "erDemandTarget": 0.7
+  },
+  "energy": {
+    "renewablesTarget": 0.2,
+    "gridLoadHigh": 0.85
+  },
+  "water": {
+    "leakRateHigh": 0.1,
+    "desalEfficiencyTarget": 0.85
+  },
+  "infrastructure": {
+    "onTimeTarget": 0.85,
+    "costOverrunHigh": 0.2
+  }
+}
+

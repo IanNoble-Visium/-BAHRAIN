@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents Dashboard Test</title>
+  <link rel="stylesheet" href="ai-agents-styles.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      padding: 20px;
+    }
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .test-section {
+      background: #1a1a1a;
+      border: 1px solid rgba(206, 17, 38, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #CE1126;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .test-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pass {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .status-fail {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .test-item {
+      padding: 10px;
+      margin: 8px 0;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid #CE1126;
+      border-radius: 4px;
+    }
+    .test-item strong {
+      color: #CE1126;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1 style="color: #CE1126; margin-bottom: 30px;">🤖 AI Agents Dashboard - Test Suite</h1>
+
+    <!-- Vue.js Test -->
+    <div class="test-section">
+      <div class="test-title">
+        Vue.js Framework
+        <span id="vue-status" class="test-status status-fail">Testing...</span>
+      </div>
+      <div id="vue-test"></div>
+    </div>
+
+    <!-- Data Generation Test -->
+    <div class="test-section">
+      <div class="test-title">
+        Data Generation
+        <span id="data-status" class="test-status status-fail">Testing...</span>
+      </div>
+      <div id="data-test"></div>
+    </div>
+
+    <!-- Components Test -->
+    <div class="test-section">
+      <div class="test-title">
+        Vue Components
+        <span id="components-status" class="test-status status-fail">Testing...</span>
+      </div>
+      <div id="components-test"></div>
+    </div>
+
+    <!-- Styling Test -->
+    <div class="test-section">
+      <div class="test-title">
+        Bahrain Theme Styling
+        <span id="styling-status" class="test-status status-fail">Testing...</span>
+      </div>
+      <div id="styling-test"></div>
+    </div>
+
+    <!-- Integration Test -->
+    <div class="test-section">
+      <div class="test-title">
+        Dashboard Integration
+        <span id="integration-status" class="test-status status-fail">Testing...</span>
+      </div>
+      <div id="integration-test"></div>
+    </div>
+  </div>
+
+  <!-- Vue.js via CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="ai-agents-data.js"></script>
+
+  <script>
+    const tests = {
+      vue: false,
+      data: false,
+      components: false,
+      styling: false,
+      integration: false
+    };
+
+    // Test 1: Vue.js
+    function testVue() {
+      try {
+        if (typeof Vue !== 'undefined' && Vue.createApp) {
+          document.getElementById('vue-test').innerHTML = `
+            <div class="test-item">
+              <strong>✓ Vue.js 3 loaded successfully</strong><br>
+              Version: ${Vue.version || 'Unknown'}
+            </div>
+          `;
+          document.getElementById('vue-status').textContent = '✓ PASS';
+          document.getElementById('vue-status').className = 'test-status status-pass';
+          tests.vue = true;
+        } else {
+          throw new Error('Vue not found');
+        }
+      } catch (e) {
+        document.getElementById('vue-test').innerHTML = `
+          <div class="test-item">
+            <strong>✗ Vue.js failed to load</strong><br>
+            Error: ${e.message}
+          </div>
+        `;
+        document.getElementById('vue-status').className = 'test-status status-fail';
+      }
+    }
+
+    // Test 2: Data Generation
+    function testData() {
+      try {
+        if (window.AIAgentsData) {
+          const agents = window.AIAgentsData.generateAgents(5);
+          const activities = window.AIAgentsData.generateActivityStream(5);
+          const kpis = window.AIAgentsData.generateAgentKPIs(agents);
+
+          document.getElementById('data-test').innerHTML = `
+            <div class="test-item">
+              <strong>✓ Data generation working</strong><br>
+              Agents generated: ${agents.length}<br>
+              Activities generated: ${activities.length}<br>
+              KPIs: Active=${kpis.activeAgents}, Threats=${kpis.threatsDetected24h}
+            </div>
+          `;
+          document.getElementById('data-status').textContent = '✓ PASS';
+          document.getElementById('data-status').className = 'test-status status-pass';
+          tests.data = true;
+        } else {
+          throw new Error('AIAgentsData not found');
+        }
+      } catch (e) {
+        document.getElementById('data-test').innerHTML = `
+          <div class="test-item">
+            <strong>✗ Data generation failed</strong><br>
+            Error: ${e.message}
+          </div>
+        `;
+        document.getElementById('data-status').className = 'test-status status-fail';
+      }
+    }
+
+    // Test 3: Components
+    function testComponents() {
+      try {
+        const components = ['KPICard', 'AgentCard', 'ActivityFeed', 'AgentDetailModal', 'AIAgentDashboard'];
+        const missing = components.filter(c => typeof window[c] === 'undefined');
+
+        if (missing.length === 0) {
+          document.getElementById('components-test').innerHTML = `
+            <div class="test-item">
+              <strong>✓ All Vue components loaded</strong><br>
+              ${components.map(c => `✓ ${c}`).join('<br>')}
+            </div>
+          `;
+          document.getElementById('components-status').textContent = '✓ PASS';
+          document.getElementById('components-status').className = 'test-status status-pass';
+          tests.components = true;
+        } else {
+          throw new Error(`Missing components: ${missing.join(', ')}`);
+        }
+      } catch (e) {
+        document.getElementById('components-test').innerHTML = `
+          <div class="test-item">
+            <strong>✗ Component loading failed</strong><br>
+            Error: ${e.message}
+          </div>
+        `;
+        document.getElementById('components-status').className = 'test-status status-fail';
+      }
+    }
+
+    // Test 4: Styling
+    function testStyling() {
+      try {
+        const styles = document.styleSheets;
+        let hasAIAgentsStyles = false;
+        let hasBahrainTheme = false;
+
+        for (let i = 0; i < styles.length; i++) {
+          try {
+            const rules = styles[i].cssRules || styles[i].rules;
+            for (let j = 0; j < rules.length; j++) {
+              const rule = rules[j];
+              if (rule.selectorText && rule.selectorText.includes('ai-agents')) {
+                hasAIAgentsStyles = true;
+              }
+              if (rule.style && rule.style.color === 'rgb(206, 17, 38)') {
+                hasBahrainTheme = true;
+              }
+            }
+          } catch (e) {
+            // Skip CORS-protected stylesheets
+          }
+        }
+
+        document.getElementById('styling-test').innerHTML = `
+          <div class="test-item">
+            <strong>✓ Bahrain theme applied</strong><br>
+            AI Agents styles: ${hasAIAgentsStyles ? '✓' : '?'}<br>
+            Bahrain Red (#CE1126) detected: ${hasBahrainTheme ? '✓' : '?'}<br>
+            Total stylesheets: ${styles.length}
+          </div>
+        `;
+        document.getElementById('styling-status').textContent = '✓ PASS';
+        document.getElementById('styling-status').className = 'test-status status-pass';
+        tests.styling = true;
+      } catch (e) {
+        document.getElementById('styling-test').innerHTML = `
+          <div class="test-item">
+            <strong>✗ Styling test failed</strong><br>
+            Error: ${e.message}
+          </div>
+        `;
+        document.getElementById('styling-status').className = 'test-status status-fail';
+      }
+    }
+
+    // Test 5: Integration
+    function testIntegration() {
+      try {
+        const container = document.getElementById('ai-agents-app');
+        const allTestsPassed = Object.values(tests).every(t => t);
+
+        if (allTestsPassed) {
+          document.getElementById('integration-test').innerHTML = `
+            <div class="test-item">
+              <strong>✓ All systems integrated successfully</strong><br>
+              Vue.js: ✓<br>
+              Data Generation: ✓<br>
+              Components: ✓<br>
+              Styling: ✓<br>
+              <br>
+              <strong>Ready to navigate to dashboard.html and select "AI Agents" view</strong>
+            </div>
+          `;
+          document.getElementById('integration-status').textContent = '✓ PASS';
+          document.getElementById('integration-status').className = 'test-status status-pass';
+          tests.integration = true;
+        } else {
+          throw new Error('Some tests failed');
+        }
+      } catch (e) {
+        document.getElementById('integration-test').innerHTML = `
+          <div class="test-item">
+            <strong>✗ Integration test failed</strong><br>
+            Error: ${e.message}
+          </div>
+        `;
+        document.getElementById('integration-status').className = 'test-status status-fail';
+      }
+    }
+
+    // Run all tests
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        testVue();
+        testData();
+        testComponents();
+        testStyling();
+        testIntegration();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+

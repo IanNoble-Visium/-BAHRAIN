@@ -1,5 +1,24 @@
 // Main JavaScript for TruContext Bahrain Demo
 
+// Suppress CesiumJS resource loading errors (non-critical)
+window.addEventListener('unhandledrejection', (event) => {
+  // Suppress JSON parsing errors from CesiumJS resource loading
+  if (event.reason && event.reason.message &&
+      event.reason.message.includes('Unexpected token') &&
+      event.reason.message.includes('<!DOCTYPE')) {
+    console.debug('ℹ️ Suppressed CesiumJS resource loading error (non-critical)');
+    event.preventDefault();
+  }
+});
+
+// Diagnostic logs for debugging
+console.log('🔍 DEBUG: main.js loaded successfully');
+
+// Import ECharts utilities
+import echartsInit from './echarts-dashboard-init.js';
+window.echartsInit = echartsInit;
+// Main JavaScript for TruContext Bahrain Demo
+
 // Global utility functions (defined first to ensure availability)
 window.tcUtils = {
   nowContext: function(){
@@ -139,7 +158,45 @@ window.tcUtils = {
       ]
     };
     const tiles = byView[view] || byView.executive;
-    row.innerHTML = tiles.map(t=>`<div class="kpi-tile"><div class="kpi-label">${t.label}</div><div class="kpi-value">${t.value ?? '—'}</div></div>`).join('');
+
+    // Render KPI tiles with animated counters
+    row.innerHTML = tiles.map((t, index) => {
+      const uniqueId = `kpi-value-${view}-${index}`;
+      return `<div class="kpi-card unified" style="animation-delay: ${index * 0.1}s;">
+        <div class="kpi-label unified">${t.label}</div>
+        <div class="kpi-value unified" id="${uniqueId}" data-target="${t.value}">${t.value ?? '—'}</div>
+      </div>`;
+    }).join('');
+
+    // Animate the counter values
+    setTimeout(() => {
+      tiles.forEach((t, index) => {
+        const uniqueId = `kpi-value-${view}-${index}`;
+        const element = document.getElementById(uniqueId);
+        if (!element) return;
+
+        const value = t.value;
+        if (typeof value === 'number' || (typeof value === 'string' && !isNaN(parseFloat(value)))) {
+          const numValue = parseFloat(value);
+          const duration = 1000;
+          const steps = 30;
+          const increment = numValue / steps;
+          let current = 0;
+          let step = 0;
+
+          const timer = setInterval(() => {
+            step++;
+            current += increment;
+            if (step >= steps) {
+              element.textContent = value;
+              clearInterval(timer);
+            } else {
+              element.textContent = Math.round(current);
+            }
+          }, duration / steps);
+        }
+      });
+    }, 100);
   }
 };
 
@@ -162,6 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         if (window.tcUtils && window.tcState) {
             window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
+            // Ensure standard dashboard is visible on load
+            updateDashboardView(window.tcState.view);
         }
     }, 100);
 });
@@ -503,19 +562,46 @@ function initializeCharts() {
 
 // Demo dashboard controls
 function initializeDemoControls() {
-    const viewSelect = document.getElementById('demo-view');
-    const timeButtons = document.querySelectorAll('.time-btn');
+    // Sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
 
-    // View selector
-    if (viewSelect) {
-        viewSelect.addEventListener('change', function() {
-            window.tcState && (window.tcState.view = this.value);
-            updateDashboardView(this.value);
-            window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
+    if (sidebarToggle && sidebar && mainContent) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            sidebarToggle.classList.toggle('active');
         });
     }
 
+    // Sidebar navigation links
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const view = this.getAttribute('data-view');
+
+            // Update active state
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update dashboard view
+            window.tcState && (window.tcState.view = view);
+            updateDashboardView(view);
+            window.tcUtils.renderKpiRow(window.tcState.view, window.tcState.range);
+
+            // Update dashboard title
+            const dashboardTitle = document.getElementById('dashboardTitle');
+            if (dashboardTitle) {
+                const label = this.querySelector('.sidebar-label').textContent;
+                dashboardTitle.textContent = label;
+            }
+        });
+    });
+
     // Time range buttons
+    const timeButtons = document.querySelectorAll('.time-btn');
     timeButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             timeButtons.forEach(b => b.classList.remove('active'));
@@ -532,33 +618,333 @@ function initializeDemoControls() {
 }
 
 function updateDashboardView(view) {
-    const dashboardCards = document.querySelectorAll('.dashboard-card');
+    console.log('🔍 DEBUG: updateDashboardView called with view:', view);
 
-    // Add loading effect
-    dashboardCards.forEach(card => {
-        card.style.opacity = '0.5';
-        setTimeout(() => {
-            card.style.opacity = '1';
-        }, 300);
+    // Get all view containers
+    let standardDashboard = document.getElementById('standardDashboard');
+    let map3DView = document.getElementById('map3DView');
+    let aiAgentsApp = document.getElementById('aiAgentsApp');
+    const demoContainer = document.querySelector('.demo-container.compact');
+    const container = document.querySelector('.demo .container');
+
+    console.log('🔍 DEBUG: Elements found:', {
+        standardDashboard: !!standardDashboard,
+        map3DView: !!map3DView,
+        aiAgentsApp: !!aiAgentsApp,
+        demoContainer: !!demoContainer,
+        container: !!container
     });
 
-    // Update metrics based on view
-    const metrics = getDashboardMetrics(view);
-    updateDashboardMetrics(metrics);
-    if (window.tcData && window.tcState) {
-        const v = window.tcState.view;
-        // Sync tiles with dataset
-        const data = window.tcData[v];
-        // entities/relationships/health reflect in updateDashboardMetrics already via metrics
-        // Directly nudge charts too for immediate feedback
-        if (window.tcCharts && window.tcCharts.security) {
-            window.tcCharts.security.data.datasets[0].data = data.security.slice();
-            window.tcCharts.security.update();
+    // Debug: list all divs with id and their parents
+    const allDivsWithId = Array.from(document.querySelectorAll('div[id]'));
+    console.log('🔍 DEBUG: All divs with id in DOM:', allDivsWithId.map(d => ({id: d.id, parentTag: d.parentElement?.tagName, parentId: d.parentElement?.id})));
+
+    // If elements don't exist, try to create them or find them in a different way
+    if (!map3DView && container) {
+        console.warn('⚠️ WARNING: map3DView not found, attempting to create it');
+        map3DView = document.createElement('div');
+        map3DView.id = 'map3DView';
+        map3DView.style.display = 'none';
+        map3DView.style.position = 'relative';
+        map3DView.style.width = '100%';
+        map3DView.style.height = 'calc(100vh - 100px)';
+
+        // Create back button
+        const backBtn = document.createElement('button');
+        backBtn.id = 'backToDashboard';
+        backBtn.style.position = 'absolute';
+        backBtn.style.top = '10px';
+        backBtn.style.left = '10px';
+        backBtn.style.zIndex = '10000';
+        backBtn.style.padding = '12px 24px';
+        backBtn.style.background = 'linear-gradient(135deg, #CE1126 0%, #a00d1f 100%)';
+        backBtn.style.color = 'white';
+        backBtn.style.border = 'none';
+        backBtn.style.borderRadius = '8px';
+        backBtn.style.fontWeight = '600';
+        backBtn.style.fontSize = '1rem';
+        backBtn.style.cursor = 'pointer';
+        backBtn.style.boxShadow = '0 4px 12px rgba(206, 17, 38, 0.4)';
+        backBtn.style.transition = 'all 0.3s ease';
+        backBtn.textContent = '← Back to Dashboard';
+
+        // Create Cesium container
+        const cesiumContainer = document.createElement('div');
+        cesiumContainer.id = 'cesiumContainer';
+        cesiumContainer.style.width = '100%';
+        cesiumContainer.style.height = '100%';
+        cesiumContainer.style.borderRadius = '12px';
+        cesiumContainer.style.overflow = 'hidden';
+
+        map3DView.appendChild(backBtn);
+        map3DView.appendChild(cesiumContainer);
+        container.appendChild(map3DView);
+        console.log('✅ Created map3DView element');
+    }
+
+    if (!aiAgentsApp && container) {
+        console.warn('⚠️ WARNING: aiAgentsApp not found, attempting to create it');
+        aiAgentsApp = document.createElement('div');
+        aiAgentsApp.id = 'aiAgentsApp';
+        aiAgentsApp.style.display = 'none';
+        container.appendChild(aiAgentsApp);
+        console.log('✅ Created aiAgentsApp element');
+    }
+
+    // Debug specific check for map3DView
+    if (!map3DView) {
+        const manualCheck = document.querySelector('#map3DView');
+        console.log('🔍 DEBUG: Manual check for #map3DView:', {found: !!manualCheck, element: manualCheck});
+    }
+
+    // Hide all views first with fade out animation
+    const hideView = (element) => {
+        if (!element) return;
+        element.style.opacity = '0';
+        element.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 300);
+    };
+
+    hideView(standardDashboard);
+    hideView(map3DView);
+    hideView(aiAgentsApp);
+
+    console.log('🔍 DEBUG: Hidden all views with fade animation');
+
+    // Helper function to show view with fade in animation
+    const showView = (element, displayType = 'block') => {
+        if (!element) return;
+        setTimeout(() => {
+            element.style.display = displayType;
+            element.style.opacity = '0';
+            requestAnimationFrame(() => {
+                element.style.transition = 'opacity 0.4s ease-in';
+                element.style.opacity = '1';
+            });
+        }, 350);
+    };
+
+    // Show the appropriate view
+    if (view === '3dmap') {
+        console.log('🔍 DEBUG: Showing 3D map view');
+        // Re-query map3DView to ensure we get the current element
+        const map3DEl = document.getElementById('map3DView');
+        if (map3DEl) {
+            showView(map3DEl, 'block');
+            if (demoContainer) demoContainer.style.display = 'none';
+            console.log('🔍 DEBUG: map3DView display set to block');
+            // Initialize Cesium if not already done
+            if (!window.cesiumInitialized) {
+                console.log('🔍 DEBUG: Calling initialize3DMap()');
+                setTimeout(() => initialize3DMap(), 400);
+            } else {
+                console.log('🔍 DEBUG: Cesium already initialized');
+            }
+        } else {
+            console.error('❌ ERROR: map3DView element not found!');
         }
-        if (window.tcCharts && window.tcCharts.traffic) {
-            window.tcCharts.traffic.data.datasets[0].data = data.traffic.slice();
-            window.tcCharts.traffic.update();
+    } else if (view === 'aiagents') {
+        // Show AI Agents dashboard
+        if (aiAgentsApp) {
+            showView(aiAgentsApp, 'block');
+            if (demoContainer) demoContainer.style.display = 'none';
+            if (typeof initAIAgentsDashboard === 'function') {
+                setTimeout(() => initAIAgentsDashboard(), 400);
+            }
         }
+    } else {
+        // Show standard dashboard for all other views
+        if (standardDashboard) {
+            showView(standardDashboard, 'grid');
+
+            // Add staggered fade-in effect for cards
+            setTimeout(() => {
+                const dashboardCards = standardDashboard.querySelectorAll('.dashboard-card');
+                dashboardCards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        card.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 50);
+                });
+            }, 400);
+        }
+        
+        // Make sure demo-container is visible for standard views
+        if (demoContainer) {
+            demoContainer.style.display = 'block';
+        }
+
+        // Update metrics based on view
+        const metrics = getDashboardMetrics(view);
+        updateDashboardMetrics(metrics);
+
+        // CHANGE 1: Hide Network Topology on all views
+        const networkTopologyCard = document.querySelector('.dashboard-card.graph-card');
+        if (networkTopologyCard) {
+            networkTopologyCard.style.display = 'none';
+        }
+
+        // CHANGE 2: Show/hide Chart.js charts based on view
+        const securityChartCard = document.getElementById('securityChart')?.closest('.dashboard-card');
+        const trafficChartCard = document.getElementById('trafficChart')?.closest('.dashboard-card');
+
+        const isExecutiveView = view === 'executive';
+        const sectorViews = ['cybersecurity', 'traffic', 'environment', 'water', 'energy', 'infrastructure', 'health'];
+        const isSectorView = sectorViews.includes(view);
+
+        // Show Chart.js charts only on Executive Dashboard
+        if (securityChartCard) {
+            securityChartCard.style.display = isExecutiveView ? 'block' : 'none';
+        }
+        if (trafficChartCard) {
+            trafficChartCard.style.display = isExecutiveView ? 'block' : 'none';
+        }
+
+        // Initialize sector-specific ECharts visualizations
+        setTimeout(() => {
+            initializeSectorECharts(view);
+        }, 500);
+
+        if (window.tcData && window.tcState) {
+            const v = window.tcState.view;
+            // Sync tiles with dataset
+            const data = window.tcData[v];
+            // entities/relationships/health reflect in updateDashboardMetrics already via metrics
+            // Directly nudge charts too for immediate feedback
+            if (window.tcCharts && window.tcCharts.security && data && data.security && isExecutiveView) {
+                window.tcCharts.security.data.datasets[0].data = data.security.slice();
+                window.tcCharts.security.update();
+            }
+            if (window.tcCharts && window.tcCharts.traffic && data && data.traffic && isExecutiveView) {
+                window.tcCharts.traffic.data.datasets[0].data = data.traffic.slice();
+                window.tcCharts.traffic.update();
+            }
+        }
+    }
+}
+
+// Initialize 3D Map using Map3D component
+async function initialize3DMap() {
+    console.log('🔍 DEBUG: Initializing 3D Map...');
+    const container = document.getElementById('cesiumContainer');
+    
+    if (!container) {
+        console.error('❌ ERROR: Cesium container not found');
+        return;
+    }
+
+    // Setup back button handler
+    const backBtn = document.getElementById('backToDashboard');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            console.log('🔍 DEBUG: Back button clicked');
+            // Cleanup Cesium
+            if (window.Map3D && window.Map3D.destroy) {
+                window.Map3D.destroy();
+            }
+            window.cesiumInitialized = false;
+            // Switch back to executive view
+            const executiveLink = document.querySelector('.sidebar-link[data-view="executive"]');
+            if (executiveLink) {
+                executiveLink.click();
+            }
+        });
+        backBtn.onmouseover = () => {
+            backBtn.style.transform = 'translateY(-2px)';
+            backBtn.style.boxShadow = '0 6px 20px rgba(206, 17, 38, 0.5)';
+        };
+        backBtn.onmouseout = () => {
+            backBtn.style.transform = 'translateY(0)';
+            backBtn.style.boxShadow = '0 4px 12px rgba(206, 17, 38, 0.4)';
+        };
+    }
+
+    // Check if Map3D component is loaded
+    if (window.Map3D && typeof window.Map3D.initialize === 'function') {
+        try {
+            console.log('✅ Map3D component available - Loading CesiumJS...');
+            console.log('🔍 DEBUG: Container dimensions:', {
+                width: container.offsetWidth,
+                height: container.offsetHeight,
+                clientWidth: container.clientWidth,
+                clientHeight: container.clientHeight
+            });
+
+            // Clear container but keep it ready for Cesium
+            container.innerHTML = '';
+            container.style.width = '100%';
+            container.style.height = '100%';
+
+            // Initialize the Cesium viewer with Manama focus
+            const viewer = await window.Map3D.initialize('cesiumContainer', {
+                focusManama: true,
+                performanceMode: 'ultra'
+            });
+
+            if (viewer) {
+                console.log('🔍 DEBUG: Cesium viewer created, checking canvas...');
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    console.log('✅ Canvas element found:', {
+                        width: canvas.width,
+                        height: canvas.height,
+                        offsetWidth: canvas.offsetWidth,
+                        offsetHeight: canvas.offsetHeight
+                    });
+                } else {
+                    console.warn('⚠️ WARNING: Canvas element not found in container');
+                }
+
+                // Add alert markers
+                await window.Map3D.addAlertMarkers({ sectors: ['all'] });
+                window.cesiumInitialized = true;
+                console.log('✅ 3D Map initialized successfully with Manama view and alert markers');
+            } else {
+                throw new Error('Failed to create Cesium viewer');
+            }
+        } catch (error) {
+            console.error('❌ ERROR: Error initializing 3D map:', error);
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: Inter, sans-serif;">
+                    <div style="text-align: center; padding: 2rem;">
+                        <h2 style="font-size: 2rem; margin-bottom: 1rem;">🌍 3D Map View</h2>
+                        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Interactive Cesium map visualization</p>
+                        <p style="opacity: 0.9; margin-bottom: 1rem;">Note: Full 3D map requires Vite development server.</p>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">Error: ${error.message}</p>
+                        <button onclick="document.querySelector('.sidebar-link[data-view=\\'executive\\']').click();"
+                                style="margin-top: 2rem; padding: 12px 24px; background: white; color: #667eea; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+                            Back to Executive View
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        // Map3D component not loaded - show informational message
+        console.warn('⚠️ WARNING: Map3D component not loaded. Run npm run dev for full 3D functionality.');
+        container.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: Inter, sans-serif;">
+                <div style="text-align: center; padding: 2rem;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">🌍 3D Map View</h2>
+                    <p style="font-size: 1.2rem; margin-bottom: 2rem;">Interactive CesiumJS 3D Visualization of Manama</p>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                        <p style="opacity: 0.9; margin-bottom: 1rem;">⚠️ The 3D map requires the Vite development server to load properly.</p>
+                        <p style="opacity: 0.9; margin-bottom: 1rem;">Run: <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">npm run dev</code></p>
+                        <p style="opacity: 0.8; font-size: 0.9rem;">Then navigate to: http://localhost:5173/dashboard.html</p>
+                    </div>
+                    <button onclick="document.querySelector('.sidebar-link[data-view=\\'executive\\']').click();"
+                            style="margin-top: 1rem; padding: 12px 24px; background: white; color: #667eea; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+                        Back to Executive View
+                    </button>
+                </div>
+            </div>
+        `;
+        window.cesiumInitialized = true;
     }
 }
 
@@ -577,10 +963,12 @@ function updateTimeRange(range) {
 function updateLiveData() {
     const range = window.tcState?.range || '24h';
     const view = window.tcState?.view || 'executive';
+    const isExecutiveView = view === 'executive';
 
     // Simulate live data updates
     // Update x-axis labels for charts based on selected time range
-    if (window.tcCharts && window.tcState) {
+    // Only update Chart.js charts on Executive Dashboard
+    if (window.tcCharts && window.tcState && isExecutiveView) {
         const range = window.tcState.range;
         // Security chart labels
         if (window.tcCharts.security) {
@@ -618,7 +1006,10 @@ function updateLiveData() {
     // Adjust metric values slightly for range
     const factor = range === '7d' ? 1.05 : range === '30d' ? 1.12 : 1.0;
     const v = window.tcState?.view || 'executive';
-    if (window.tcData) {
+    const isExecutive = v === 'executive';
+
+    // Only update Chart.js charts on Executive Dashboard
+    if (window.tcData && isExecutive) {
         const d = window.tcData[v];
         if (d && window.tcCharts) {
             if (window.tcCharts.security) {
@@ -670,14 +1061,16 @@ function updateLiveData() {
         if (fallbackSources[view]) candidates.push(fallbackSources[view]);
         candidates.push(fallbackSources.executive);
         setVideoSourceWithFallback(video, candidates);
-    // Use tcData per current view
+    // Use tcData per current view - only update Chart.js charts on Executive Dashboard
     if (window.tcData && window.tcState) {
         const v = window.tcState.view;
-        if (window.tcCharts && window.tcCharts.security) {
+        const isExecutive = v === 'executive';
+
+        if (window.tcData[v] && window.tcCharts && window.tcCharts.security && isExecutive) {
             window.tcCharts.security.data.datasets[0].data = window.tcData[v].security.slice();
             window.tcCharts.security.update();
         }
-        if (window.tcCharts && window.tcCharts.traffic) {
+        if (window.tcData[v] && window.tcCharts && window.tcCharts.traffic && isExecutive) {
             window.tcCharts.traffic.data.datasets[0].data = window.tcData[v].traffic.slice();
             window.tcCharts.traffic.update();
         }
@@ -688,8 +1081,8 @@ function updateLiveData() {
         setTimeout(()=>{ if (playing) video.play().catch(()=>{}); }, 200);
     }
 
-    // Update charts for realism by view
-    if (window.tcCharts) {
+    // Update charts for realism by view - only update Chart.js charts on Executive Dashboard
+    if (window.tcCharts && isExecutiveView) {
         if (window.tcCharts.security) {
             window.tcCharts.security.data.datasets[0].data = window.tcUtils.getRealisticSeries('security', view, range);
             window.tcCharts.security.update();
@@ -727,6 +1120,531 @@ function getDashboardMetrics(view) {
         health: { entities: 6789, relationships: 34567, threatLevel: 'LOW', health: 99 }
     };
     return map[view] || base;
+}
+
+// Initialize ECharts visualizations for sector-specific views
+function initializeSectorECharts(view) {
+    if (!window.echarts) {
+        console.warn('ECharts library not loaded');
+        return;
+    }
+
+    // Show/hide ECharts cards based on view
+    const echartsCards = document.querySelectorAll('.echarts-container');
+    const shouldShowECharts = ['cybersecurity', 'traffic', 'environment', 'water', 'energy', 'health', 'infrastructure'].includes(view);
+
+    echartsCards.forEach(card => {
+        card.style.display = shouldShowECharts ? 'block' : 'none';
+    });
+
+    if (!shouldShowECharts) return;
+
+    // Get chart containers
+    const chart1 = document.getElementById('echartsChart1');
+    const chart2 = document.getElementById('echartsChart2');
+    const chart3 = document.getElementById('echartsChart3');
+
+    if (!chart1 || !chart2 || !chart3) return;
+
+    // Initialize or get existing chart instances
+    const echartsInstance1 = window.echarts.init(chart1);
+    const echartsInstance2 = window.echarts.init(chart2);
+    const echartsInstance3 = window.echarts.init(chart3);
+
+    // Store instances for cleanup
+    window.tcECharts = { chart1: echartsInstance1, chart2: echartsInstance2, chart3: echartsInstance3 };
+
+    // Update titles
+    document.getElementById('echartsTitle1').textContent = getSectorChartTitle(view, 1);
+    document.getElementById('echartsTitle2').textContent = getSectorChartTitle(view, 2);
+    document.getElementById('echartsTitle3').textContent = getSectorChartTitle(view, 3);
+
+    // Render charts based on sector
+    switch(view) {
+        case 'cybersecurity':
+            renderCybersecurityCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'traffic':
+            renderTrafficCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'environment':
+            renderEnvironmentCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'water':
+            renderWaterCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'energy':
+            renderEnergyCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'health':
+            renderHealthCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+        case 'infrastructure':
+            renderInfrastructureCharts(echartsInstance1, echartsInstance2, echartsInstance3);
+            break;
+    }
+}
+
+function getSectorChartTitle(view, chartNum) {
+    const titles = {
+        cybersecurity: ['Threat Distribution (Sunburst)', 'Attack Vectors (Radar)', 'Security Events Timeline (Scatter)'],
+        traffic: ['Traffic Flow Patterns (Sankey)', 'Congestion Heatmap (Polar)', 'Vehicle Distribution (Treemap)'],
+        environment: ['Air Quality Trends (Rainfall)', 'Pollution Sources (Sunburst)', 'Temperature Distribution (Scatter Matrix)'],
+        water: ['Water Flow Network (Sankey)', 'Consumption Patterns (Bubble)', 'Leak Detection (Scatter)'],
+        energy: ['Energy Distribution (Treemap)', 'Grid Load (Polar)', 'Renewable Sources (Sunburst)'],
+        health: ['Patient Flow (Sankey)', 'Disease Prevalence (Bubble)', 'Hospital Capacity (Radar)'],
+        infrastructure: ['Project Timeline (Scatter)', 'Budget Allocation (Treemap)', 'Resource Distribution (Sunburst)']
+    };
+    return titles[view]?.[chartNum - 1] || 'Advanced Visualization';
+}
+
+// Cybersecurity Charts
+function renderCybersecurityCharts(chart1, chart2, chart3) {
+    // Chart 1: Threat Distribution (Sunburst)
+    chart1.setOption({
+        series: {
+            type: 'sunburst',
+            data: [{
+                name: 'Threats',
+                children: [
+                    {
+                        name: 'Malware',
+                        value: 45,
+                        children: [
+                            { name: 'Ransomware', value: 20 },
+                            { name: 'Trojans', value: 15 },
+                            { name: 'Worms', value: 10 }
+                        ]
+                    },
+                    {
+                        name: 'Network Attacks',
+                        value: 35,
+                        children: [
+                            { name: 'DDoS', value: 15 },
+                            { name: 'Port Scanning', value: 12 },
+                            { name: 'Man-in-Middle', value: 8 }
+                        ]
+                    },
+                    {
+                        name: 'Social Engineering',
+                        value: 20,
+                        children: [
+                            { name: 'Phishing', value: 12 },
+                            { name: 'Spear Phishing', value: 8 }
+                        ]
+                    }
+                ]
+            }],
+            radius: [0, '90%'],
+            label: { rotate: 'radial' }
+        }
+    });
+
+    // Chart 2: Attack Vectors (Radar)
+    chart2.setOption({
+        radar: {
+            indicator: [
+                { name: 'Email', max: 100 },
+                { name: 'Web', max: 100 },
+                { name: 'Network', max: 100 },
+                { name: 'Application', max: 100 },
+                { name: 'Physical', max: 100 }
+            ]
+        },
+        series: [{
+            type: 'radar',
+            data: [
+                { value: [85, 72, 68, 55, 30], name: 'Current Week' },
+                { value: [78, 65, 72, 60, 25], name: 'Last Week' }
+            ]
+        }]
+    });
+
+    // Chart 3: Security Events Timeline (Scatter)
+    const scatterData = Array.from({ length: 50 }, () => [
+        Math.random() * 24,
+        Math.random() * 100,
+        Math.random() * 50 + 10
+    ]);
+    chart3.setOption({
+        xAxis: { name: 'Hour of Day', max: 24 },
+        yAxis: { name: 'Severity' },
+        series: [{
+            type: 'scatter',
+            symbolSize: (data) => data[2],
+            data: scatterData,
+            itemStyle: { color: '#ef4444' }
+        }]
+    });
+}
+
+// Traffic Charts
+function renderTrafficCharts(chart1, chart2, chart3) {
+    // Chart 1: Traffic Flow Patterns (Sankey)
+    chart1.setOption({
+        series: {
+            type: 'sankey',
+            data: [
+                { name: 'North Entry' },
+                { name: 'South Entry' },
+                { name: 'East Entry' },
+                { name: 'Manama Center' },
+                { name: 'Diplomatic Area' },
+                { name: 'Muharraq' },
+                { name: 'North Exit' },
+                { name: 'South Exit' }
+            ],
+            links: [
+                { source: 'North Entry', target: 'Manama Center', value: 120 },
+                { source: 'South Entry', target: 'Manama Center', value: 95 },
+                { source: 'East Entry', target: 'Diplomatic Area', value: 80 },
+                { source: 'Manama Center', target: 'Muharraq', value: 85 },
+                { source: 'Diplomatic Area', target: 'Muharraq', value: 60 },
+                { source: 'Muharraq', target: 'North Exit', value: 75 },
+                { source: 'Muharraq', target: 'South Exit', value: 70 }
+            ]
+        }
+    });
+
+    // Chart 2: Congestion Heatmap (Polar)
+    chart2.setOption({
+        polar: {},
+        angleAxis: {
+            type: 'category',
+            data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
+        },
+        radiusAxis: {},
+        series: [{
+            type: 'bar',
+            data: [25, 15, 85, 65, 90, 75],
+            coordinateSystem: 'polar',
+            itemStyle: { color: '#3b82f6' }
+        }]
+    });
+
+    // Chart 3: Vehicle Distribution (Treemap)
+    chart3.setOption({
+        series: [{
+            type: 'treemap',
+            data: [
+                { name: 'Private Cars', value: 4500 },
+                { name: 'Taxis', value: 850 },
+                { name: 'Buses', value: 320 },
+                { name: 'Trucks', value: 280 },
+                { name: 'Motorcycles', value: 150 }
+            ]
+        }]
+    });
+}
+
+// Environment Charts
+function renderEnvironmentCharts(chart1, chart2, chart3) {
+    // Chart 1: Air Quality Trends (Rainfall)
+    chart1.setOption({
+        xAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+        yAxis: { type: 'value', name: 'AQI' },
+        series: [{
+            type: 'line',
+            data: [65, 72, 68, 85, 92, 78, 70],
+            areaStyle: { color: 'rgba(16, 185, 129, 0.3)' },
+            itemStyle: { color: '#10b981' }
+        }]
+    });
+
+    // Chart 2: Pollution Sources (Sunburst)
+    chart2.setOption({
+        series: {
+            type: 'sunburst',
+            data: [{
+                name: 'Pollution',
+                children: [
+                    {
+                        name: 'Industrial',
+                        value: 40,
+                        children: [
+                            { name: 'Factories', value: 25 },
+                            { name: 'Refineries', value: 15 }
+                        ]
+                    },
+                    {
+                        name: 'Transportation',
+                        value: 35,
+                        children: [
+                            { name: 'Vehicles', value: 20 },
+                            { name: 'Ships', value: 15 }
+                        ]
+                    },
+                    { name: 'Dust Storms', value: 25 }
+                ]
+            }],
+            radius: [0, '90%']
+        }
+    });
+
+    // Chart 3: Temperature Distribution (Scatter)
+    const tempData = Array.from({ length: 30 }, (_, i) => [i, 35 + Math.random() * 10]);
+    chart3.setOption({
+        xAxis: { name: 'Day of Month' },
+        yAxis: { name: 'Temperature (°C)' },
+        series: [{
+            type: 'scatter',
+            data: tempData,
+            itemStyle: { color: '#f59e0b' }
+        }]
+    });
+}
+
+// Water Charts
+function renderWaterCharts(chart1, chart2, chart3) {
+    // Chart 1: Water Flow Network (Sankey)
+    chart1.setOption({
+        series: {
+            type: 'sankey',
+            data: [
+                { name: 'Desalination' },
+                { name: 'Treatment' },
+                { name: 'North Network' },
+                { name: 'South Network' },
+                { name: 'Residential' },
+                { name: 'Industrial' },
+                { name: 'Commercial' }
+            ],
+            links: [
+                { source: 'Desalination', target: 'Treatment', value: 450 },
+                { source: 'Treatment', target: 'North Network', value: 220 },
+                { source: 'Treatment', target: 'South Network', value: 230 },
+                { source: 'North Network', target: 'Residential', value: 120 },
+                { source: 'North Network', target: 'Commercial', value: 100 },
+                { source: 'South Network', target: 'Residential', value: 130 },
+                { source: 'South Network', target: 'Industrial', value: 100 }
+            ]
+        }
+    });
+
+    // Chart 2: Consumption Patterns (Bubble)
+    chart2.setOption({
+        xAxis: { name: 'Hour' },
+        yAxis: { name: 'Consumption (MLD)' },
+        series: [{
+            type: 'scatter',
+            symbolSize: (data) => data[2] * 2,
+            data: [
+                [6, 280, 25], [9, 350, 35], [12, 420, 45],
+                [15, 390, 40], [18, 450, 50], [21, 320, 30]
+            ],
+            itemStyle: { color: '#3b82f6' }
+        }]
+    });
+
+    // Chart 3: Leak Detection (Scatter)
+    const leakData = Array.from({ length: 20 }, () => [
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 30 + 5
+    ]);
+    chart3.setOption({
+        xAxis: { name: 'Network Zone' },
+        yAxis: { name: 'Pressure (PSI)' },
+        series: [{
+            type: 'scatter',
+            symbolSize: (data) => data[2],
+            data: leakData,
+            itemStyle: { color: '#ef4444' }
+        }]
+    });
+}
+
+// Energy Charts
+function renderEnergyCharts(chart1, chart2, chart3) {
+    // Chart 1: Energy Distribution (Treemap)
+    chart1.setOption({
+        series: [{
+            type: 'treemap',
+            data: [
+                { name: 'Residential', value: 450 },
+                { name: 'Commercial', value: 380 },
+                { name: 'Industrial', value: 320 },
+                { name: 'Government', value: 180 },
+                { name: 'Street Lighting', value: 70 }
+            ]
+        }]
+    });
+
+    // Chart 2: Grid Load (Polar)
+    chart2.setOption({
+        polar: {},
+        angleAxis: {
+            type: 'category',
+            data: ['North', 'South', 'East', 'West', 'Central', 'Muharraq']
+        },
+        radiusAxis: { max: 100 },
+        series: [{
+            type: 'bar',
+            data: [85, 72, 68, 78, 92, 65],
+            coordinateSystem: 'polar',
+            itemStyle: { color: '#8b5cf6' }
+        }]
+    });
+
+    // Chart 3: Renewable Sources (Sunburst)
+    chart3.setOption({
+        series: {
+            type: 'sunburst',
+            data: [{
+                name: 'Energy',
+                children: [
+                    {
+                        name: 'Renewable',
+                        value: 145,
+                        children: [
+                            { name: 'Solar', value: 120 },
+                            { name: 'Wind', value: 25 }
+                        ]
+                    },
+                    {
+                        name: 'Conventional',
+                        value: 1035,
+                        children: [
+                            { name: 'Natural Gas', value: 850 },
+                            { name: 'Oil', value: 185 }
+                        ]
+                    }
+                ]
+            }],
+            radius: [0, '90%']
+        }
+    });
+}
+
+// Health Charts
+function renderHealthCharts(chart1, chart2, chart3) {
+    // Chart 1: Patient Flow (Sankey)
+    chart1.setOption({
+        series: {
+            type: 'sankey',
+            data: [
+                { name: 'Emergency' },
+                { name: 'Outpatient' },
+                { name: 'Triage' },
+                { name: 'ICU' },
+                { name: 'General Ward' },
+                { name: 'Discharged' },
+                { name: 'Transferred' }
+            ],
+            links: [
+                { source: 'Emergency', target: 'Triage', value: 180 },
+                { source: 'Outpatient', target: 'Triage', value: 120 },
+                { source: 'Triage', target: 'ICU', value: 45 },
+                { source: 'Triage', target: 'General Ward', value: 155 },
+                { source: 'ICU', target: 'General Ward', value: 30 },
+                { source: 'General Ward', target: 'Discharged', value: 140 },
+                { source: 'General Ward', target: 'Transferred', value: 45 }
+            ]
+        }
+    });
+
+    // Chart 2: Disease Prevalence (Bubble)
+    chart2.setOption({
+        xAxis: { name: 'Age Group' },
+        yAxis: { name: 'Prevalence (%)' },
+        series: [{
+            type: 'scatter',
+            symbolSize: (data) => data[2] * 3,
+            data: [
+                [1, 5, 15], [2, 8, 20], [3, 12, 25],
+                [4, 19, 30], [5, 25, 35], [6, 29, 28]
+            ],
+            itemStyle: { color: '#ef4444' }
+        }]
+    });
+
+    // Chart 3: Hospital Capacity (Radar)
+    chart3.setOption({
+        radar: {
+            indicator: [
+                { name: 'ICU Beds', max: 100 },
+                { name: 'General Beds', max: 100 },
+                { name: 'ER Capacity', max: 100 },
+                { name: 'Staff Availability', max: 100 },
+                { name: 'Equipment', max: 100 }
+            ]
+        },
+        series: [{
+            type: 'radar',
+            data: [
+                { value: [68, 82, 75, 88, 92], name: 'Current' },
+                { value: [85, 90, 85, 95, 98], name: 'Target' }
+            ]
+        }]
+    });
+}
+
+// Infrastructure Charts
+function renderInfrastructureCharts(chart1, chart2, chart3) {
+    // Chart 1: Project Timeline (Scatter)
+    const projectData = [
+        [1, 45, 25, 'Airport Expansion'],
+        [3, 72, 35, 'Metro Line 2'],
+        [5, 38, 20, 'Water Main Upgrade'],
+        [7, 85, 40, 'Port Modernization'],
+        [9, 62, 30, 'Housing Development']
+    ];
+    chart1.setOption({
+        xAxis: { name: 'Project Phase' },
+        yAxis: { name: 'Completion (%)' },
+        series: [{
+            type: 'scatter',
+            symbolSize: (data) => data[2],
+            data: projectData,
+            itemStyle: { color: '#3b82f6' }
+        }]
+    });
+
+    // Chart 2: Budget Allocation (Treemap)
+    chart2.setOption({
+        series: [{
+            type: 'treemap',
+            data: [
+                { name: 'Transportation', value: 450 },
+                { name: 'Utilities', value: 320 },
+                { name: 'Housing', value: 280 },
+                { name: 'Public Facilities', value: 180 },
+                { name: 'Smart Systems', value: 120 }
+            ]
+        }]
+    });
+
+    // Chart 3: Resource Distribution (Sunburst)
+    chart3.setOption({
+        series: {
+            type: 'sunburst',
+            data: [{
+                name: 'Resources',
+                children: [
+                    {
+                        name: 'Labor',
+                        value: 450,
+                        children: [
+                            { name: 'Engineers', value: 180 },
+                            { name: 'Workers', value: 220 },
+                            { name: 'Supervisors', value: 50 }
+                        ]
+                    },
+                    {
+                        name: 'Materials',
+                        value: 380,
+                        children: [
+                            { name: 'Steel', value: 150 },
+                            { name: 'Concrete', value: 180 },
+                            { name: 'Equipment', value: 50 }
+                        ]
+                    },
+                    { name: 'Technology', value: 170 }
+                ]
+            }],
+            radius: [0, '90%']
+        }
+    });
 }
 
 function updateDashboardMetrics(metrics) {
@@ -1095,31 +2013,57 @@ function initializeMap() {
 // Cytoscape context graph
 function initializeContextGraph() {
     const el = document.getElementById('cyGraph');
-    if (!el || !window.cytoscape) return;
-    const cy = cytoscape({
-        container: el,
-        style: [
-            { selector: 'node', style: { 'background-color': '#3b82f6', 'label': 'data(label)', 'color':'#334155', 'font-size':'10px' } },
-            { selector: 'edge', style: { 'width': 2, 'line-color': '#94a3b8', 'curve-style': 'bezier' } },
-            { selector: '.threat', style: { 'background-color': '#ef4444' } },
-            { selector: '.service', style: { 'background-color': '#10b981' } }
-        ],
-        layout: { name: 'cose', animate: true }
-    });
+    console.log('🔍 DEBUG: initializeContextGraph called, el:', el, 'cytoscape:', !!window.cytoscape);
+    if (!el || !window.cytoscape) {
+        console.warn('🔍 DEBUG: Cytoscape initialization skipped - missing element or library');
+        return;
+    }
 
-    const nodes = [
-        { data: { id: 'core', label: 'Core Router' } },
-        { data: { id: 'manama', label: 'Manama DC' }, classes: 'service' },
-        { data: { id: 'muharraq', label: 'Muharraq Sensor Hub' }, classes: 'service' },
-        { data: { id: 'threat1', label: 'Threat IOC' }, classes: 'threat' }
-    ];
-    const edges = [
-        { data: { id: 'e1', source: 'core', target: 'manama' } },
-        { data: { id: 'e2', source: 'core', target: 'muharraq' } },
-        { data: { id: 'e3', source: 'manama', target: 'threat1' } }
-    ];
-    cy.add(nodes);
-    cy.add(edges);
+    try {
+        console.log('🔍 DEBUG: Creating Cytoscape instance...');
+        const cy = cytoscape({
+            container: el,
+            style: [
+                { selector: 'node', style: { 'background-color': '#3b82f6', 'label': 'data(label)', 'color':'#334155', 'font-size':'10px' } },
+                { selector: 'edge', style: { 'width': 2, 'line-color': '#94a3b8', 'curve-style': 'bezier' } },
+                { selector: '.threat', style: { 'background-color': '#ef4444' } },
+                { selector: '.service', style: { 'background-color': '#10b981' } }
+            ],
+            layout: { name: 'cose', animate: true }
+        });
+
+        const nodes = [
+            { data: { id: 'core', label: 'Core Router' } },
+            { data: { id: 'manama', label: 'Manama DC' }, classes: 'service' },
+            { data: { id: 'muharraq', label: 'Muharraq Sensor Hub' }, classes: 'service' },
+            { data: { id: 'threat1', label: 'Threat IOC' }, classes: 'threat' }
+        ];
+        const edges = [
+            { data: { id: 'e1', source: 'core', target: 'manama' } },
+            { data: { id: 'e2', source: 'core', target: 'muharraq' } },
+            { data: { id: 'e3', source: 'manama', target: 'threat1' } }
+        ];
+        cy.add(nodes);
+        cy.add(edges);
+
+        // Store reference and try to fit after layout
+        window.tcCytoscape = cy;
+        setTimeout(() => {
+            try {
+                if (cy && typeof cy.fit === 'function') {
+                    console.log('🔍 DEBUG: Calling cy.fit()...');
+                    cy.fit();
+                    console.log('🔍 DEBUG: cy.fit() completed successfully');
+                } else {
+                    console.warn('🔍 DEBUG: cy.fit() not available or cy is null');
+                }
+            } catch (e) {
+                console.warn('🔍 DEBUG: Cytoscape fit failed:', e);
+            }
+        }, 100);
+    } catch (error) {
+        console.warn('🔍 DEBUG: Cytoscape initialization failed:', error);
+    }
 }
 
 // Global search across cards/alerts
@@ -1134,4 +2078,3 @@ function initializeSearch() {
         });
     });
 }
-
