@@ -962,46 +962,29 @@ function updateDashboardView(view) {
             // IMPORTANT: Set visibility of conditional cards BEFORE showing the view
             const isExecutiveView = view === 'executive';
 
-            console.log('🔍 DEBUG: KPI CARD VISIBILITY LOGIC RUNNING');
-            console.log('🔍 DEBUG: Current view:', view);
-            console.log('🔍 DEBUG: isExecutiveView:', isExecutiveView);
-
             // Hide/show KPI metric cards based on view
             const networkEntitiesCard = document.getElementById('networkEntitiesCard');
             const activeRelationshipsCard = document.getElementById('activeRelationshipsCard');
             const threatLevelCard = document.getElementById('threatLevelCard');
             const systemHealthCard = document.getElementById('systemHealthCard');
 
-            console.log('🔍 DEBUG: Found KPI cards:', {
-                networkEntitiesCard: !!networkEntitiesCard,
-                activeRelationshipsCard: !!activeRelationshipsCard,
-                threatLevelCard: !!threatLevelCard,
-                systemHealthCard: !!systemHealthCard
-            });
-
             if (networkEntitiesCard) {
                 networkEntitiesCard.style.display = isExecutiveView ? 'block' : 'none';
-                console.log('🔍 DEBUG: networkEntitiesCard display set to:', networkEntitiesCard.style.display);
             }
             if (activeRelationshipsCard) {
                 activeRelationshipsCard.style.display = isExecutiveView ? 'block' : 'none';
-                console.log('🔍 DEBUG: activeRelationshipsCard display set to:', activeRelationshipsCard.style.display);
             }
             if (threatLevelCard) {
                 threatLevelCard.style.display = isExecutiveView ? 'block' : 'none';
-                console.log('🔍 DEBUG: threatLevelCard display set to:', threatLevelCard.style.display);
             }
             if (systemHealthCard) {
                 systemHealthCard.style.display = isExecutiveView ? 'block' : 'none';
-                console.log('🔍 DEBUG: systemHealthCard display set to:', systemHealthCard.style.display);
             }
 
             // Hide/show Domain Network Graph based on view
             const domainNetworkGraphCard = document.getElementById('domainNetworkGraphCard');
-            console.log('🔍 DEBUG: Found domainNetworkGraphCard:', !!domainNetworkGraphCard);
             if (domainNetworkGraphCard) {
                 domainNetworkGraphCard.style.display = isExecutiveView ? 'block' : 'none';
-                console.log('🔍 DEBUG: domainNetworkGraphCard display set to:', domainNetworkGraphCard.style.display);
             }
 
             showView(standardDashboard, 'grid');

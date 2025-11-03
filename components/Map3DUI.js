@@ -18,13 +18,36 @@ let uiState = {
 // Initialize all 3D Map UI components
 export function initialize3DMapUI(viewer) {
   if (!viewer) return;
-  
+
   createNavigationControls(viewer);
   createMiniMap(viewer);
   createEnhancedLegend(viewer);
   createAlertPanel(viewer);
   createOverlayToggles(viewer);
   createStatsOverlay(viewer);
+
+  // Set up camera movement listener to update mini-map
+  setupCameraUpdateListener(viewer);
+}
+
+// Set up listener to update mini-map when camera moves
+function setupCameraUpdateListener(viewer) {
+  if (!viewer || !viewer.camera) return;
+
+  // Update mini-map on camera move (throttled to avoid performance issues)
+  let lastUpdate = 0;
+  const updateInterval = 200; // Update every 200ms max
+
+  viewer.camera.moveEnd.addEventListener(() => {
+    const now = Date.now();
+    if (now - lastUpdate > updateInterval) {
+      updateMiniMapViewport(viewer);
+      lastUpdate = now;
+    }
+  });
+
+  // Initial update
+  setTimeout(() => updateMiniMapViewport(viewer), 500);
 }
 
 // Navigation Controls with View Presets
@@ -128,14 +151,27 @@ function setupNavigationHandlers(viewer, panel) {
     });
   });
   
-  // Tilt control
+  // Tilt control - FIX: Use setView to properly update camera pitch
   const tiltControl = panel.querySelector('#tiltControl');
   const tiltValue = panel.querySelector('#tiltValue');
   if (tiltControl && viewer) {
     tiltControl.addEventListener('input', (e) => {
       const pitch = parseFloat(e.target.value);
       tiltValue.textContent = pitch + '°';
-      viewer.camera.pitch = Cesium.Math.toRadians(pitch);
+
+      // Get current camera position and heading
+      const currentPosition = viewer.camera.position.clone();
+      const currentHeading = viewer.camera.heading;
+
+      // Set new view with updated pitch
+      viewer.camera.setView({
+        destination: currentPosition,
+        orientation: {
+          heading: currentHeading,
+          pitch: Cesium.Math.toRadians(pitch),
+          roll: 0.0
+        }
+      });
     });
   }
   
@@ -199,27 +235,68 @@ function createMiniMap(viewer) {
   initializeMiniMapCanvas();
 }
 
+// Store mini-map instance and viewport indicator globally for updates
+let miniMapInstance = null;
+let viewportIndicator = null;
+
 function initializeMiniMapCanvas() {
   const canvas = document.getElementById('minimapCanvas');
   if (!canvas || !window.L) return;
-  
-  const miniMapInstance = L.map(canvas, {
+
+  miniMapInstance = L.map(canvas, {
     zoomControl: false,
     attributionControl: false,
     dragging: false,
     scrollWheelZoom: false
   }).setView([26.0667, 50.5577], 9);
-  
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18
   }).addTo(miniMapInstance);
-  
+
   // Add viewport indicator (will update with camera movements)
-  const viewportRect = L.rectangle([[26.1, 50.5], [26.3, 50.6]], {
+  viewportIndicator = L.rectangle([[26.1, 50.5], [26.3, 50.6]], {
     color: '#CE1126',
     weight: 2,
     fillOpacity: 0.1
   }).addTo(miniMapInstance);
+}
+
+// Update mini-map viewport indicator based on camera position
+export function updateMiniMapViewport(viewer) {
+  if (!miniMapInstance || !viewportIndicator || !viewer) return;
+
+  try {
+    // Get camera position in cartographic coordinates
+    const cameraPos = viewer.camera.positionCartographic;
+    const lon = Cesium.Math.toDegrees(cameraPos.longitude);
+    const lat = Cesium.Math.toDegrees(cameraPos.latitude);
+    const height = cameraPos.height;
+
+    // Calculate approximate viewport bounds based on camera height and pitch
+    const viewportSize = Math.max(0.01, height / 50000); // Scale based on altitude
+
+    const bounds = [
+      [lat - viewportSize, lon - viewportSize],
+      [lat + viewportSize, lon + viewportSize]
+    ];
+
+    // Update rectangle bounds
+    viewportIndicator.setBounds(bounds);
+
+    // Center mini-map on camera position if far from center
+    const miniMapCenter = miniMapInstance.getCenter();
+    const distance = Math.sqrt(
+      Math.pow(miniMapCenter.lat - lat, 2) +
+      Math.pow(miniMapCenter.lng - lon, 2)
+    );
+
+    if (distance > 0.5) { // Re-center if moved significantly
+      miniMapInstance.panTo([lat, lon], { animate: false });
+    }
+  } catch (error) {
+    console.warn('Error updating mini-map:', error);
+  }
 }
 
 // Enhanced Legend with Toggles

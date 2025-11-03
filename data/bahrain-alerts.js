@@ -1,13 +1,14 @@
 // Bahrain Alerts Data for 3D Map Visualization
 
 export const sectors = [
-  'traffic',
-  'health',
-  'environment',
-  'water',
-  'cybersecurity',
-  'energy',
-  'infrastructure'
+  { id: 'all', name: 'All Sectors', icon: '🌐' },
+  { id: 'cybersecurity', name: 'Cybersecurity', icon: '🛡️' },
+  { id: 'traffic', name: 'Traffic', icon: '🚦' },
+  { id: 'environment', name: 'Environment', icon: '🌬️' },
+  { id: 'water', name: 'Water Management', icon: '💧' },
+  { id: 'energy', name: 'Energy & Renewables', icon: '⚡' },
+  { id: 'infrastructure', name: 'Infrastructure', icon: '🏗️' },
+  { id: 'health', name: 'Health Monitoring', icon: '🏥' }
 ];
 
 // Severity colors mapping
@@ -165,7 +166,7 @@ export function getAlertsBySeverity(severity) {
 // Get alert statistics
 export function getAlertStatistics() {
   const allAlerts = generateBahrainAlerts();
-  
+
   const stats = {
     total: allAlerts.length,
     bySeverity: {
@@ -177,7 +178,9 @@ export function getAlertStatistics() {
   };
 
   sectors.forEach(sector => {
-    stats.bySector[sector] = allAlerts.filter(a => a.sector === sector).length;
+    if (sector.id !== 'all') {
+      stats.bySector[sector.id] = allAlerts.filter(a => a.sector === sector.id).length;
+    }
   });
 
   return stats;
