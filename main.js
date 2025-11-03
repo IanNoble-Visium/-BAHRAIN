@@ -570,31 +570,31 @@ function initializeDomainNetworkGraph() {
 
     const domainChart = window.echarts.init(domainChartEl);
 
-    // Generate network graph data
+    // Generate network graph data with bold, high-contrast colors
     const categories = [
-        { name: 'Core Infrastructure' },
-        { name: 'Security Systems' },
-        { name: 'IoT Devices' },
-        { name: 'Data Centers' },
-        { name: 'Edge Nodes' }
+        { name: 'Core Infrastructure', itemStyle: { color: '#dc2626' } },      // Bold Red
+        { name: 'Security Systems', itemStyle: { color: '#ea580c' } },         // Bold Orange
+        { name: 'IoT Devices', itemStyle: { color: '#16a34a' } },              // Bold Green
+        { name: 'Data Centers', itemStyle: { color: '#2563eb' } },             // Bold Blue
+        { name: 'Edge Nodes', itemStyle: { color: '#9333ea' } }                // Bold Purple
     ];
 
     const nodes = [
-        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 80 },
-        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 65 },
-        { id: '2', name: 'Firewall Cluster', value: 75, category: 1, symbolSize: 60 },
-        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 55 },
-        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 52 },
-        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 70 },
-        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 68 },
-        { id: '7', name: 'Edge Server 1', value: 60, category: 4, symbolSize: 50 },
-        { id: '8', name: 'Edge Server 2', value: 58, category: 4, symbolSize: 48 },
-        { id: '9', name: 'Edge Server 3', value: 56, category: 4, symbolSize: 47 },
-        { id: '10', name: 'Traffic Monitor', value: 72, category: 2, symbolSize: 57 },
-        { id: '11', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 63 },
-        { id: '12', name: 'API Gateway', value: 68, category: 0, symbolSize: 55 },
-        { id: '13', name: 'Load Balancer', value: 77, category: 0, symbolSize: 61 },
-        { id: '14', name: 'Backup System', value: 82, category: 3, symbolSize: 64 }
+        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 95 },
+        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 78 },
+        { id: '2', name: 'Firewall Cluster', value: 75, category: 1, symbolSize: 72 },
+        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 68 },
+        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 65 },
+        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 85 },
+        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 82 },
+        { id: '7', name: 'Edge Server 1', value: 60, category: 4, symbolSize: 62 },
+        { id: '8', name: 'Edge Server 2', value: 58, category: 4, symbolSize: 60 },
+        { id: '9', name: 'Edge Server 3', value: 56, category: 4, symbolSize: 58 },
+        { id: '10', name: 'Traffic Monitor', value: 72, category: 2, symbolSize: 70 },
+        { id: '11', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 76 },
+        { id: '12', name: 'API Gateway', value: 68, category: 0, symbolSize: 68 },
+        { id: '13', name: 'Load Balancer', value: 77, category: 0, symbolSize: 74 },
+        { id: '14', name: 'Backup System', value: 82, category: 3, symbolSize: 77 }
     ];
 
     const links = [
@@ -622,45 +622,50 @@ function initializeDomainNetworkGraph() {
         backgroundColor: 'transparent',
         tooltip: {
             trigger: 'item',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderColor: '#3b82f6',
-            borderWidth: 2,
+            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+            borderColor: '#2563eb',
+            borderWidth: 3,
             textStyle: {
-                color: '#1f2937',
-                fontSize: 13
+                color: '#111827',
+                fontSize: 15,
+                fontWeight: '500'
             },
             formatter: function(params) {
                 if (params.dataType === 'node') {
-                    return `<strong style="font-size: 14px; color: #1f2937;">${params.data.name}</strong><br/>
-                            <span style="color: #6b7280;">Category:</span> <strong>${categories[params.data.category].name}</strong><br/>
-                            <span style="color: #6b7280;">Value:</span> <strong>${params.data.value}</strong><br/>
-                            <span style="color: #6b7280;">Connections:</span> <strong>${links.filter(l => l.source === params.data.id || l.target === params.data.id).length}</strong>`;
+                    return `<strong style="font-size: 16px; color: #111827; font-weight: 700;">${params.data.name}</strong><br/>
+                            <span style="color: #4b5563; font-size: 14px;">Category:</span> <strong style="font-size: 14px;">${categories[params.data.category].name}</strong><br/>
+                            <span style="color: #4b5563; font-size: 14px;">Value:</span> <strong style="font-size: 14px;">${params.data.value}</strong><br/>
+                            <span style="color: #4b5563; font-size: 14px;">Connections:</span> <strong style="font-size: 14px;">${links.filter(l => l.source === params.data.id || l.target === params.data.id).length}</strong>`;
                 } else {
                     const sourceName = nodes.find(n => n.id === params.data.source)?.name || params.data.source;
                     const targetName = nodes.find(n => n.id === params.data.target)?.name || params.data.target;
-                    return `<strong style="font-size: 13px;">${sourceName}</strong> → <strong>${targetName}</strong><br/>
-                            <span style="color: #6b7280;">Connection Strength:</span> <strong>${params.data.value}</strong>`;
+                    return `<strong style="font-size: 15px; font-weight: 600;">${sourceName}</strong> → <strong style="font-weight: 600;">${targetName}</strong><br/>
+                            <span style="color: #4b5563; font-size: 14px;">Connection Strength:</span> <strong style="font-size: 14px;">${params.data.value}</strong>`;
                 }
             }
         },
         legend: [{
             data: categories.map(c => c.name),
             orient: 'vertical',
-            left: 15,
-            top: 25,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            borderColor: '#e5e7eb',
-            borderWidth: 1,
-            borderRadius: 6,
-            padding: [12, 15],
+            left: 18,
+            top: 30,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderColor: '#d1d5db',
+            borderWidth: 2,
+            borderRadius: 8,
+            padding: [15, 18],
             textStyle: {
-                color: '#1f2937',
-                fontSize: 13,
-                fontWeight: '500'
+                color: '#111827',
+                fontSize: 15,
+                fontWeight: '600'
             },
-            itemWidth: 18,
-            itemHeight: 18,
-            itemGap: 10
+            itemWidth: 22,
+            itemHeight: 22,
+            itemGap: 12,
+            shadowBlur: 8,
+            shadowColor: 'rgba(0, 0, 0, 0.15)',
+            shadowOffsetX: 0,
+            shadowOffsetY: 2
         }],
         animationDuration: 1500,
         animationEasingUpdate: 'quinticInOut',
@@ -675,14 +680,18 @@ function initializeDomainNetworkGraph() {
                 show: true,
                 position: 'right',
                 formatter: '{b}',
-                fontSize: 13,
-                fontWeight: '600',
-                color: '#111827',
-                backgroundColor: 'rgba(255, 255, 255, 0.85)',
-                padding: [4, 8],
-                borderRadius: 4,
-                borderColor: '#e5e7eb',
-                borderWidth: 1
+                fontSize: 16,
+                fontWeight: '700',
+                color: '#000000',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: [6, 12],
+                borderRadius: 6,
+                borderColor: '#9ca3af',
+                borderWidth: 2,
+                shadowBlur: 6,
+                shadowColor: 'rgba(0, 0, 0, 0.25)',
+                shadowOffsetX: 0,
+                shadowOffsetY: 2
             },
             labelLayout: {
                 hideOverlap: false,
@@ -695,35 +704,37 @@ function initializeDomainNetworkGraph() {
             lineStyle: {
                 color: 'source',
                 curveness: 0.3,
-                opacity: 0.6,
-                width: 2.5
+                opacity: 0.7,
+                width: 3.5
             },
             emphasis: {
                 focus: 'adjacency',
                 lineStyle: {
-                    width: 5,
+                    width: 6,
                     opacity: 1
                 },
                 label: {
-                    fontSize: 15,
-                    fontWeight: 'bold',
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderWidth: 2,
-                    borderColor: '#3b82f6'
+                    fontSize: 18,
+                    fontWeight: '800',
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 3,
+                    borderColor: '#2563eb',
+                    shadowBlur: 10,
+                    shadowColor: 'rgba(37, 99, 235, 0.4)'
                 }
             },
             force: {
-                repulsion: 350,
-                gravity: 0.08,
-                edgeLength: [80, 200],
+                repulsion: 450,
+                gravity: 0.06,
+                edgeLength: [100, 250],
                 layoutAnimation: true,
-                friction: 0.6
+                friction: 0.5
             },
             itemStyle: {
-                borderColor: '#fff',
-                borderWidth: 3,
-                shadowBlur: 12,
-                shadowColor: 'rgba(0, 0, 0, 0.4)'
+                borderColor: '#ffffff',
+                borderWidth: 4,
+                shadowBlur: 15,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
             }
         }]
     };
@@ -937,6 +948,34 @@ function updateDashboardView(view) {
     } else {
         // Show standard dashboard for all other views
         if (standardDashboard) {
+            // IMPORTANT: Set visibility of conditional cards BEFORE showing the view
+            const isExecutiveView = view === 'executive';
+
+            // Hide/show KPI metric cards based on view
+            const networkEntitiesCard = document.getElementById('networkEntitiesCard');
+            const activeRelationshipsCard = document.getElementById('activeRelationshipsCard');
+            const threatLevelCard = document.getElementById('threatLevelCard');
+            const systemHealthCard = document.getElementById('systemHealthCard');
+
+            if (networkEntitiesCard) {
+                networkEntitiesCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+            if (activeRelationshipsCard) {
+                activeRelationshipsCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+            if (threatLevelCard) {
+                threatLevelCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+            if (systemHealthCard) {
+                systemHealthCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+
+            // Hide/show Domain Network Graph based on view
+            const domainNetworkGraphCard = document.getElementById('domainNetworkGraphCard');
+            if (domainNetworkGraphCard) {
+                domainNetworkGraphCard.style.display = isExecutiveView ? 'block' : 'none';
+            }
+
             showView(standardDashboard, 'grid');
 
             // Add staggered fade-in effect for cards (but skip hidden cards)
@@ -978,8 +1017,6 @@ function updateDashboardView(view) {
         const trafficChartCard = document.getElementById('trafficChart')?.closest('.dashboard-card');
 
         const isExecutiveView = view === 'executive';
-        const sectorViews = ['cybersecurity', 'traffic', 'environment', 'water', 'energy', 'infrastructure', 'health'];
-        const isSectorView = sectorViews.includes(view);
 
         // Show Chart.js charts only on Executive Dashboard
         if (securityChartCard) {
@@ -987,26 +1024,6 @@ function updateDashboardView(view) {
         }
         if (trafficChartCard) {
             trafficChartCard.style.display = isExecutiveView ? 'block' : 'none';
-        }
-
-        // CHANGE 3: Show/hide KPI metric cards based on view
-        // These four KPI cards should only display on Executive Dashboard
-        const networkEntitiesCard = document.getElementById('networkEntitiesCard');
-        const activeRelationshipsCard = document.getElementById('activeRelationshipsCard');
-        const threatLevelCard = document.getElementById('threatLevelCard');
-        const systemHealthCard = document.getElementById('systemHealthCard');
-
-        if (networkEntitiesCard) {
-            networkEntitiesCard.style.display = isExecutiveView ? 'block' : 'none';
-        }
-        if (activeRelationshipsCard) {
-            activeRelationshipsCard.style.display = isExecutiveView ? 'block' : 'none';
-        }
-        if (threatLevelCard) {
-            threatLevelCard.style.display = isExecutiveView ? 'block' : 'none';
-        }
-        if (systemHealthCard) {
-            systemHealthCard.style.display = isExecutiveView ? 'block' : 'none';
         }
 
         // Initialize sector-specific ECharts visualizations
