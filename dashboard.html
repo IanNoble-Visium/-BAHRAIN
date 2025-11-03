@@ -161,62 +161,81 @@
       </div>
 
       <!-- Standard Dashboard View -->
-      <div id="standardDashboard" class="dashboard-grid unified">
-        <!-- Metric Cards -->
-        <div id="networkEntitiesCard" class="dashboard-card unified metric-card kpi-metric-card">
-          <h4 class="card-title unified">Network Entities</h4>
-          <div class="metric-value unified">
-            <span class="number" data-target="15847">0</span>
-            <span class="trend positive">+12%</span>
+      <div id="standardDashboard" class="dashboard-grid unified executive-enhanced">
+        <!-- Metric Cards Row -->
+        <div class="metrics-row">
+          <div id="networkEntitiesCard" class="dashboard-card unified metric-card kpi-metric-card fade-in-card" style="animation-delay: 0.1s;">
+            <div class="metric-icon">🌐</div>
+            <h4 class="card-title unified">Network Entities</h4>
+            <div class="metric-value unified">
+              <span class="number" data-target="15847">0</span>
+              <span class="trend positive">+12%</span>
+            </div>
+            <p class="metric-label unified">All monitored assets</p>
           </div>
-          <p class="metric-label unified">All monitored assets</p>
+
+          <div id="activeRelationshipsCard" class="dashboard-card unified metric-card kpi-metric-card fade-in-card" style="animation-delay: 0.2s;">
+            <div class="metric-icon">🔗</div>
+            <h4 class="card-title unified">Active Relationships</h4>
+            <div class="metric-value unified">
+              <span class="number" data-target="89234">0</span>
+              <span class="trend positive">+8%</span>
+            </div>
+            <p class="metric-label unified">Network connections</p>
+          </div>
+
+          <div id="threatLevelCard" class="dashboard-card unified metric-card kpi-metric-card fade-in-card" style="animation-delay: 0.3s;">
+            <div class="metric-icon">🛡️</div>
+            <h4 class="card-title unified">Threat Level</h4>
+            <div class="metric-value unified">
+              <span class="status-indicator low">LOW</span>
+            </div>
+            <p class="metric-label unified">Overall risk assessment</p>
+          </div>
+
+          <div id="systemHealthCard" class="dashboard-card unified metric-card kpi-metric-card fade-in-card" style="animation-delay: 0.4s;">
+            <div class="metric-icon">💚</div>
+            <h4 class="card-title unified">System Health</h4>
+            <div class="metric-value unified">
+              <span class="health-score">98%</span>
+              <span class="trend positive">+2%</span>
+            </div>
+            <p class="metric-label unified">Platform performance</p>
+          </div>
         </div>
 
-        <div id="activeRelationshipsCard" class="dashboard-card unified metric-card kpi-metric-card">
-          <h4 class="card-title unified">Active Relationships</h4>
-          <div class="metric-value unified">
-            <span class="number" data-target="89234">0</span>
-            <span class="trend positive">+8%</span>
+        <!-- Domain Network Graph - Full Width Feature -->
+        <div id="domainNetworkGraphCard" class="dashboard-card unified chart-card domain-network-card fade-in-card" style="animation-delay: 0.5s;">
+          <div class="card-header-enhanced">
+            <h4 class="card-title unified" id="domainTitle">
+              <span class="title-icon">🕸️</span>
+              Domain Network Graph
+            </h4>
+            <div class="card-badge">Interactive</div>
           </div>
-          <p class="metric-label unified">Network connections</p>
+          <div class="chart-container unified">
+            <div id="domainChart" class="echarts-container unified" style="width: 100%; height: 100%; min-height: 500px;"></div>
+          </div>
         </div>
 
-        <div id="threatLevelCard" class="dashboard-card unified metric-card kpi-metric-card">
-          <h4 class="card-title unified">Threat Level</h4>
-          <div class="metric-value unified">
-            <span class="status-indicator low">LOW</span>
-          </div>
-          <p class="metric-label unified">Overall risk assessment</p>
-        </div>
-
-        <div id="systemHealthCard" class="dashboard-card unified metric-card kpi-metric-card">
-          <h4 class="card-title unified">System Health</h4>
-          <div class="metric-value unified">
-            <span class="health-score">98%</span>
-            <span class="trend positive">+2%</span>
-          </div>
-          <p class="metric-label unified">Platform performance</p>
-        </div>
-
-        <!-- Chart Cards -->
-        <div class="dashboard-card unified chart-card">
-          <h4 class="card-title unified" id="chart1Title">Security Trends (24h)</h4>
+        <!-- Chart Cards Row -->
+        <div class="dashboard-card unified chart-card fade-in-card" style="animation-delay: 0.6s;">
+          <h4 class="card-title unified" id="chart1Title">
+            <span class="title-icon">📈</span>
+            Security Trends (24h)
+          </h4>
           <div class="chart-container unified">
             <canvas id="securityChart"></canvas>
           </div>
         </div>
 
-        <div class="dashboard-card unified chart-card">
-          <h4 class="card-title unified" id="chart2Title">Traffic Flow Analysis</h4>
+        <div class="dashboard-card unified chart-card fade-in-card" style="animation-delay: 0.7s;">
+          <h4 class="card-title unified" id="chart2Title">
+            <span class="title-icon">🚦</span>
+            Traffic Flow Analysis
+          </h4>
           <div class="chart-container unified">
             <canvas id="trafficChart"></canvas>
-          </div>
-        </div>
-
-        <div id="domainNetworkGraphCard" class="dashboard-card unified chart-card">
-          <h4 class="card-title unified" id="domainTitle">Domain Network Graph</h4>
-          <div class="chart-container unified">
-            <div id="domainChart" class="echarts-container unified" style="width: 100%; height: 100%; min-height: 350px;"></div>
           </div>
         </div>
 
@@ -236,16 +255,13 @@
           <div id="echartsChart3" class="echarts-chart unified"></div>
         </div>
 
-        <!-- Network Topology -->
-        <div class="dashboard-card unified graph-card">
-          <h4 class="card-title unified">Network Topology</h4>
-          <div id="cyGraph" class="network-visualization unified"></div>
-        </div>
-
         <!-- Bahrain Map -->
-        <div class="dashboard-card unified map-card">
+        <div class="dashboard-card unified map-card fade-in-card" style="animation-delay: 0.8s;">
           <div class="card-header unified">
-            <h4 class="card-title unified">Bahrain Map</h4>
+            <h4 class="card-title unified">
+              <span class="title-icon">🗺️</span>
+              Bahrain Map
+            </h4>
             <div class="card-controls unified">
               <label>Heatmap:</label>
               <select id="heatToggle" class="select-unified">
@@ -258,8 +274,11 @@
         </div>
 
         <!-- Live Dashboard Feed -->
-        <div class="dashboard-card unified video-card">
-          <h4 class="card-title unified">Live Dashboard Feed</h4>
+        <div class="dashboard-card unified video-card fade-in-card" style="animation-delay: 0.9s;">
+          <h4 class="card-title unified">
+            <span class="title-icon">📹</span>
+            Live Dashboard Feed
+          </h4>
           <video id="dashboardVideo" class="dashboard-video unified" autoplay muted loop playsinline controlslist="nodownload">
             <source src="/videos/Realtime_data_flow_202508200300_dtvgx.mp4" type="video/mp4">
             <source src="/videos/Dynamic_City_Map_Video_Ready.mp4" type="video/mp4">
@@ -267,9 +286,12 @@
         </div>
 
         <!-- Recent Alerts -->
-        <div class="dashboard-card unified alert-card">
+        <div class="dashboard-card unified alert-card fade-in-card" style="animation-delay: 1.0s;">
           <div class="card-header unified">
-            <h4 class="card-title unified">Recent Alerts</h4>
+            <h4 class="card-title unified">
+              <span class="title-icon">🚨</span>
+              Recent Alerts
+            </h4>
             <div class="card-controls unified">
               <label>Severity:</label>
               <select id="alertSeverityFilter" class="select-unified">

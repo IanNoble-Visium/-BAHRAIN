@@ -566,7 +566,34 @@ function initializeCharts() {
 // Initialize Domain Network Graph with ECharts
 function initializeDomainNetworkGraph() {
     const domainChartEl = document.getElementById('domainChart');
-    if (!domainChartEl || !window.echarts) return;
+    if (!domainChartEl) {
+        console.warn('Domain Network Graph: element not found');
+        return;
+    }
+    if (!window.echarts) {
+        console.warn('Domain Network Graph: ECharts library not loaded');
+        return;
+    }
+
+    // Check if element is visible
+    const isVisible = domainChartEl.offsetWidth > 0 && domainChartEl.offsetHeight > 0;
+    if (!isVisible) {
+        console.warn('Domain Network Graph: element not visible, retrying...');
+        setTimeout(() => initializeDomainNetworkGraph(), 200);
+        return;
+    }
+
+    console.log('✅ Initializing Domain Network Graph, dimensions:', domainChartEl.offsetWidth, 'x', domainChartEl.offsetHeight);
+
+    // Destroy existing chart instance if it exists
+    if (window.tcCharts?.domain) {
+        try {
+            window.tcCharts.domain.dispose();
+        } catch (e) {
+            console.warn('Error disposing domain chart:', e);
+        }
+        window.tcCharts.domain = null;
+    }
 
     const domainChart = window.echarts.init(domainChartEl);
 
@@ -579,43 +606,36 @@ function initializeDomainNetworkGraph() {
         { name: 'Edge Nodes', itemStyle: { color: '#9333ea' } }                // Bold Purple
     ];
 
+    // Reduced node set with larger sizes for better visibility
     const nodes = [
-        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 95 },
-        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 78 },
-        { id: '2', name: 'Firewall Cluster', value: 75, category: 1, symbolSize: 72 },
-        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 68 },
-        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 65 },
-        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 85 },
-        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 82 },
-        { id: '7', name: 'Edge Server 1', value: 60, category: 4, symbolSize: 62 },
-        { id: '8', name: 'Edge Server 2', value: 58, category: 4, symbolSize: 60 },
-        { id: '9', name: 'Edge Server 3', value: 56, category: 4, symbolSize: 58 },
-        { id: '10', name: 'Traffic Monitor', value: 72, category: 2, symbolSize: 70 },
-        { id: '11', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 76 },
-        { id: '12', name: 'API Gateway', value: 68, category: 0, symbolSize: 68 },
-        { id: '13', name: 'Load Balancer', value: 77, category: 0, symbolSize: 74 },
-        { id: '14', name: 'Backup System', value: 82, category: 3, symbolSize: 77 }
+        { id: '0', name: 'Central Hub', value: 100, category: 0, symbolSize: 80 },
+        { id: '1', name: 'Security Gateway', value: 85, category: 1, symbolSize: 65 },
+        { id: '2', name: 'Firewall', value: 75, category: 1, symbolSize: 55 },
+        { id: '3', name: 'IoT Gateway', value: 70, category: 2, symbolSize: 60 },
+        { id: '4', name: 'Sensor Network', value: 65, category: 2, symbolSize: 55 },
+        { id: '5', name: 'Data Center 1', value: 90, category: 3, symbolSize: 70 },
+        { id: '6', name: 'Data Center 2', value: 88, category: 3, symbolSize: 68 },
+        { id: '7', name: 'Edge Server', value: 60, category: 4, symbolSize: 52 },
+        { id: '8', name: 'Analytics Engine', value: 80, category: 3, symbolSize: 62 },
+        { id: '9', name: 'API Gateway', value: 68, category: 0, symbolSize: 58 },
+        { id: '10', name: 'Load Balancer', value: 77, category: 0, symbolSize: 60 }
     ];
 
+    // Simplified links matching reduced node set
     const links = [
         { source: '0', target: '1', value: 10 },
         { source: '0', target: '5', value: 15 },
         { source: '0', target: '6', value: 14 },
-        { source: '0', target: '12', value: 12 },
-        { source: '0', target: '13', value: 13 },
+        { source: '0', target: '9', value: 12 },
+        { source: '0', target: '10', value: 13 },
         { source: '1', target: '2', value: 8 },
         { source: '1', target: '3', value: 7 },
         { source: '3', target: '4', value: 6 },
-        { source: '3', target: '10', value: 5 },
-        { source: '5', target: '11', value: 9 },
-        { source: '5', target: '14', value: 8 },
-        { source: '6', target: '11', value: 9 },
-        { source: '6', target: '14', value: 7 },
+        { source: '5', target: '8', value: 9 },
+        { source: '6', target: '8', value: 9 },
         { source: '7', target: '0', value: 4 },
-        { source: '8', target: '0', value: 4 },
-        { source: '9', target: '0', value: 4 },
-        { source: '12', target: '13', value: 6 },
-        { source: '11', target: '12', value: 7 }
+        { source: '9', target: '10', value: 6 },
+        { source: '8', target: '9', value: 7 }
     ];
 
     const option = {
@@ -646,26 +666,22 @@ function initializeDomainNetworkGraph() {
         },
         legend: [{
             data: categories.map(c => c.name),
-            orient: 'vertical',
-            left: 18,
-            top: 30,
+            orient: 'horizontal',
+            left: 'center',
+            top: 10,
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderColor: '#d1d5db',
             borderWidth: 2,
             borderRadius: 8,
-            padding: [15, 18],
+            padding: [10, 15],
             textStyle: {
                 color: '#111827',
-                fontSize: 15,
+                fontSize: 13,
                 fontWeight: '600'
             },
-            itemWidth: 22,
-            itemHeight: 22,
-            itemGap: 12,
-            shadowBlur: 8,
-            shadowColor: 'rgba(0, 0, 0, 0.15)',
-            shadowOffsetX: 0,
-            shadowOffsetY: 2
+            itemWidth: 18,
+            itemHeight: 18,
+            itemGap: 10
         }],
         animationDuration: 1500,
         animationEasingUpdate: 'quinticInOut',
@@ -680,18 +696,18 @@ function initializeDomainNetworkGraph() {
                 show: true,
                 position: 'right',
                 formatter: '{b}',
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: '700',
                 color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: [6, 12],
-                borderRadius: 6,
+                backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                padding: [4, 8],
+                borderRadius: 4,
                 borderColor: '#9ca3af',
-                borderWidth: 2,
-                shadowBlur: 6,
-                shadowColor: 'rgba(0, 0, 0, 0.25)',
+                borderWidth: 1.5,
+                shadowBlur: 4,
+                shadowColor: 'rgba(0, 0, 0, 0.2)',
                 shadowOffsetX: 0,
-                shadowOffsetY: 2
+                shadowOffsetY: 1
             },
             labelLayout: {
                 hideOverlap: false,
@@ -724,11 +740,11 @@ function initializeDomainNetworkGraph() {
                 }
             },
             force: {
-                repulsion: 450,
-                gravity: 0.06,
-                edgeLength: [100, 250],
+                repulsion: 800,
+                gravity: 0.03,
+                edgeLength: [150, 300],
                 layoutAnimation: true,
-                friction: 0.5
+                friction: 0.6
             },
             itemStyle: {
                 borderColor: '#ffffff',
@@ -1041,6 +1057,33 @@ function updateDashboardView(view) {
         setTimeout(() => {
             initializeSectorECharts(view);
         }, 500);
+
+        // Initialize Domain Network Graph for executive view
+        if (isExecutiveView) {
+            setTimeout(() => {
+                // Ensure ECharts is loaded and domain chart element is visible
+                const domainChartEl = document.getElementById('domainChart');
+                if (domainChartEl && !window.tcCharts?.domain) {
+                    // Wait for ECharts to be available
+                    const checkECharts = setInterval(() => {
+                        if (window.echarts && domainChartEl) {
+                            clearInterval(checkECharts);
+                            initializeDomainNetworkGraph();
+                        }
+                    }, 100);
+                    // Timeout after 5 seconds
+                    setTimeout(() => clearInterval(checkECharts), 5000);
+                } else if (domainChartEl && window.tcCharts?.domain) {
+                    // Chart already exists, just resize it
+                    try {
+                        window.tcCharts.domain.resize();
+                    } catch (e) {
+                        console.warn('Failed to resize domain chart, reinitializing:', e);
+                        initializeDomainNetworkGraph();
+                    }
+                }
+            }, 600);
+        }
 
         if (window.tcData && window.tcState) {
             const v = window.tcState.view;
